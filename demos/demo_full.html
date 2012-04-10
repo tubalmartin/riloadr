@@ -1,0 +1,103 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if IEMobile 7 ]>    <html class="no-js iem7" lang="en"> <![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    
+    <title>Riloadr: A responsive images loader</title>
+    
+    <!-- Mobile viewport optimization -->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="0">
+    <meta name="viewport" content="width=device-width">
+    
+    <!-- Recommended styles --> 
+    <style type="text/css">
+        img{
+            max-width: 100%; /* To make them fluid */
+            min-height:100px /* To give them some height until loaded. Should equal 'threshold' value */
+        }
+        img.responsive{
+            visibility:hidden /* To make them not visible until loaded */
+        }
+        .no-js img.responsive{
+            display:none /* To hide 'responsive' images if Javascript is disabled */
+        }
+    </style>
+    
+    <!-- Make it safe to use console.log always -->
+    <script type="text/javascript">
+        (function(a){function b(){}for(var c="assert,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profileEnd,time,timeEnd,trace,warn".split(","),d;!!(d=c.pop());){a[d]=a[d]||b;}})
+        (function(){try{console.log();return window.console;}catch(a){return (window.console={});}}());
+    </script>
+    
+    <!-- Include & set Riloadr up! --> 
+    <script type="text/javascript" src="../riloadr.js"></script>
+    <script type="text/javascript">   
+        var group1 = new Riloadr({
+            baseUrl: "images/",
+            defer: "belowfold",
+            onload: function(){
+                console.log("'" + this.alt + "' image loaded!");
+            },
+            onerror: function(){
+                console.log("Failed loading image '" + this.alt + "'!");
+                console.log("Riloadr will try to reload this image one more time.");
+            },
+            retries: 1,
+            media: {
+                w240: {maxWidth: 240},
+                w320: {minWidth: 241, maxWidth: 320},
+                w640: {minWidth: 321, maxWidth: 640},
+                w1024: {minWidth: 641}
+            }
+        });   
+    </script>
+</head>
+<body>
+
+
+  <header>
+        <h1>Riloadr: Full demo</h1>
+  </header>
+  <div role="main">
+        <p>
+            <img class="responsive" alt="Tahiti" data-w240="tahiti_240.jpg" data-w320="tahiti_320.jpg" data-w640="tahiti_640.jpg" data-w1024="tahiti_1024.jpg">
+            <noscript>
+                <img alt="Tahiti" src="images/tahiti_320.jpg">
+            </noscript>
+        </p>
+        <p>
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </p>
+        <p>
+            <img class="responsive" alt="Cocoa Beach" data-w240="cocoa_240.jpg" data-w320="cocoa_320.jpg" data-w640="cocoa_640.jpg" data-w1024="cocoa_1024.jpg">
+            <noscript>
+                <img alt="Cocoa Beach" src="images/cocoa_320.jpg">
+            </noscript>
+        </p>
+        <p>
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </p>
+        <p>
+            <img class="responsive" alt="La Jolla" data-w240="jolla_240.jpg" data-w320="jolla_320.jpg" data-w640="jolla_640.jpg" data-w1024="jolla_1024.jpg">
+            <noscript>
+                <img alt="La Jolla" src="images/jolla_320.jpg">
+            </noscript>
+        </p>
+        <p>
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </p>
+        <p>
+            <img class="responsive" alt="Morro Rocks" data-w240="morro_240.jpg" data-w320="morro_320.jpg" data-w640="morro_640.jpg" data-w1024="morro_1024.jpg">
+            <noscript>
+                <img alt="Morro Rocks" src="images/morro_320.jpg">
+            </noscript>
+        </p>
+  </div>
+
+</body>
+</html>
