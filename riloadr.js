@@ -267,8 +267,7 @@
               , clientTop = docElm[CLIENTTOP] || body[CLIENTTOP] || 0
               , clientHeight = doc.compatMode === 'CSS1Compat' && docElm[CLIENTHEIGHT] || 
                     body && body[CLIENTHEIGHT] || docElm[CLIENTHEIGHT];
-    
-            // Threshold: 100px    
+        
             return clientHeight <= img[GETBOUNDINGCLIENTRECT]().top - clientTop - threshold;                 
         }
 
