@@ -85,9 +85,11 @@
           , belowfoldEnabled = belowfoldSupported && deferMode === 'belowfold'
             
             // # of times to retry to load an image if initial loading failed.
+            // Fallbacks to 0 (no retries)
           , retries = +options[RETRIES] || 0
           
-          // Setting threshold to n causes image to load n pixels before it is visible.
+            // Setting threshold to n causes image to load n pixels before it is visible.
+            // Fallbacks to 100px
           , threshold = +options.threshold || 100
             
             // DOM node where Riloadr must look for 'responsive' images.
@@ -355,7 +357,7 @@
      * Uses the viewport width to mimic CSS behavior.
      */
     function getSizeOfImages(media, vWidth) {
-        if (!media) throw new Error(RILOADR + ": Missing required 'media' property");
+        if (!media) throw new Error("Riloadr: Missing required 'media' property");
         
         var imgSize = ''
           , size, tmpSize, minWidth, maxWidth;  
