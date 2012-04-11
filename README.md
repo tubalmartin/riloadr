@@ -17,7 +17,7 @@ A cross-browser framework-independent responsive images loader.
 
 <a name="features"></a>
 
-## Features
+## 1. Features
 
 * **No dependencies**: Just Riloadr, HTML and CSS (No server involved if you don't want to, no cookies, no .htaccess, no other Javascript library or framework required).
 * **Ease of use**: 5-15 mins reading the docs and checking some demos and you're good to go!
@@ -36,13 +36,13 @@ A cross-browser framework-independent responsive images loader.
 
 <a name="howto"></a>
 
-## How to use
+## 2. How to use
 
 
 
 <a name="options"></a>
 
-## Configuration options
+## 2.1. Configuration options
 
 ### base (*String*, Optional)  
 An absolute or relative path to all images in a group.
@@ -104,18 +104,20 @@ Example 2:
     <img class="responsive" data-mobile="mobi/super.jpg" data-tablet="tablet/super.jpg" data-desktop="desktop/super.jpg">
 ```
   
-You can configure as many breakpoints (or size ranges) as you need.  
-You are free to choose the breakpoint names you like most.  
+Configure as many breakpoints (or size ranges) as you need.  
+Choose the breakpoint names you like most.  
 Each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
-**Important!**:  
+
+**Important!**:   
 When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image URL) to load the image.  
-Remember, Riloadr *mimics CSS* and as such, it works with CSS pixels not device pixels. So when you define your breakpoints follow this simple rule to calculate the minWidth and maxWidth values:  
+Remember, Riloadr *mimics CSS* and as such, it works with CSS pixels not with device pixels. So when you define your breakpoints use this formula to calculate the minWidth and maxWidth values:  
 
 `device screen width / device pixel ratio = width in CSS pixels`  
 
 An example:  
 You need to target the iPhone 4 which in portrait mode has a screen width (device pixels) of 640px.
-The iPhone 4 has a device pixel ratio of 2 (2 device pixels equal 1 CSS pixel) so if we apply the formula above to calculate the width in CSS pixels we get a width of 320px. This is the value that you should set as `minWidth` to target the iPhone 3 & 4.
+The iPhone 4 has a device pixel ratio of 2 (2 device pixels equal 1 CSS pixel) so if we apply the formula above we get a width of 320 CSS pixels.  
+This is the value that you should set as `minWidth` to target the iPhone 3 & 4.
 
 
 ### className (*String*, Optional)    
@@ -208,6 +210,8 @@ This is the key to create image groups.
 Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...).    
 If `parentNode` is not set, it defaults to the `body` element (1 group).  
 
+***
+
 ### retries (*Integer* | Optional)  
 Number of times Riloadr must try to load an image if it fails to load.
 
@@ -218,6 +222,8 @@ Number of times Riloadr must try to load an image if it fails to load.
 ```
 
 If `retries` is not set, it defaults to `0` (no retries). 
+
+***
 
 ### serverBreakpoints (*Boolean* | Optional)   
 If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and omit the `breakpoints` option.  
@@ -255,7 +261,7 @@ Even if we didn't use query strings, it wouldn't be cache friendly either becaus
 
 <a name="methods"></a>
 
-## Methods
+## 2.2. Methods
 
 
 <a name="demos"></a>
