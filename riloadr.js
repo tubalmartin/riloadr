@@ -19,6 +19,7 @@
       , NULL = null
       , LOAD = 'load'
       , ERROR = 'error'
+      , EMPTYSTRING = ''
       , LENGTH = 'length'
       , SCROLL = 'scroll'
       , RESIZE = 'resize'
@@ -39,21 +40,29 @@
       , win = window
       , doc = win.document
       , docElm = doc.documentElement
+      , body // Initialized when DOM is ready
+      
+      // Feature support
       , belowfoldSupported = GETBOUNDINGCLIENTRECT in docElm
       , orientationSupported = ORIENTATION in win && ON+ORIENTATIONCHANGE in win
       , selectorsApiSupported = QUERYSELECTORALL in doc
       
+      // Screen info 
+      , screenWidth = win.screen.width
+      , devicePixelRatio = parseFloat(win.devicePixelRatio) || 1
+      , viewportWidth // Initialized when DOM is ready
+      
       // Topics/subscriptions map (Pub/Sub)
       , topics = {}
       
-      // Calculated width of the viewport in CSS pixels.
-      , viewportWidth = 0
+      // Support for Opera Mini (executes Js on the server)
+      , operaMini = Object.prototype.toString.call(win.operamini) === '[object OperaMini]'
       
-      // Uninitialized vars
-      , addEvent, removeEvent, onDomReady, body, lastOrientation
+      // Other uninitialized vars
+      , addEvent, removeEvent, onDomReady
+      , lastOrientation
       , scrollEventRegistered, resizeEventRegistered, orientationEventRegistered;
       
-    
     
     // If Modernizr is missing remove "no-js" class from <html> element, if it exists:
     !('Modernizr' in win) && 
@@ -73,27 +82,42 @@
         
         
         var instance = this
+            
+            // Name to identify images that must be processed by Riloadr.
+            // Specified in the 'class' attribute of 'img' tags.
+          , className = options.className || 'responsive'
+          , classNameRegexp = new RegExp('(^|\\s)'+className+'(\\s|$)')
+          
+            // Base path
+          , base = options.base || EMPTYSTRING
         
-            // Base URL
-          , baseUrl = options.baseUrl || ''
-        
-            // Defer load: disabled by default, if enabled fallbacks to "load". 
+            // Defer load: disabled by default, if enabled falls back to "load". 
             // Possible values: 'belowfold' & 'load'.
-          , deferMode = (options.defer + '').toLowerCase() || FALSE
+          , deferMode = (options.defer + EMPTYSTRING).toLowerCase() || FALSE
             
             // 'belowfold' defer mode?
-          , belowfoldEnabled = belowfoldSupported && deferMode === 'belowfold'
+          , belowfoldEnabled = belowfoldSupported && deferMode === 'belowfold' && !operaMini
             
             // # of times to retry to load an image if initial loading failed.
-            // Fallbacks to 0 (no retries)
+            // Falls back to 0 (no retries)
           , retries = +options[RETRIES] || 0
           
-            // Setting threshold to n causes image to load n pixels before it is visible.
-            // Fallbacks to 100px
-          , threshold = +options.threshold || 100
+            // Setting foldDistance to n causes image to load n pixels before it is visible.
+            // Falls back to 100px
+          , foldDistance = +options.foldDistance || 100
+          
+            // CSS-like breakpoints configuration
+          , media = options.media || FALSE
+          
+            // Breakpoints are set on the server. Server chooses the image to deliver.
+            // Riloadr notifies the server about the viewportWidth, screeWidth and 
+            // devicePixelRatio appending a query string to the image src.
+            // This allows developers to create/resize images on the server and 
+            // deliver them on-the-fly.
+          , serverBreakpoints = !media && options.serverBreakpoints || FALSE
             
             // DOM node where Riloadr must look for 'responsive' images.
-            // Fallbacks to body if not set.
+            // Falls back to body if not set.
           , parentNode
             
             // Size of images to use.
@@ -146,11 +170,17 @@
                         }
                         subscribe(ORIENTATIONCHANGE, instance.loadImages);
                     }
-                }
+                 
+                    // Load initial "above the fold" images
+                    instance.loadImages();
                 
-                // Load initial "above the fold" images OR all images if the browser 
-                // does not support the 'getBoundingClientRect' method.
-                instance.loadImages();
+                // 'load' Fallback   
+                } else {
+                    // Load all images after window is loaded if the browser 
+                    // does not support the 'getBoundingClientRect' method or 
+                    // if it's Opera Mini.
+                    onWindowReady(instance.loadImages);
+                }
                 
             } else if (deferMode === LOAD) {
                 // Load all images after win is loaded
@@ -165,7 +195,7 @@
         
         /*
          * Collects all 'responsive' images from the DOM node specified.
-         * If no DOM node is specified, it fallbacks to body.
+         * If no DOM node is specified, it falls back to body.
          */
         function getImages(update) {
             // If initial collection is done and 
@@ -174,7 +204,7 @@
             !images && (images = []);
             
             var imageList = selectorsApiSupported && 
-                    parentNode[QUERYSELECTORALL]('img.responsive') || 
+                    parentNode[QUERYSELECTORALL]('img.'+className) || 
                     parentNode.getElementsByTagName('img')
               , i = 0
               , l = imageList[LENGTH]
@@ -185,7 +215,7 @@
                 current = imageList[i];
                 // If we haven't processed this image yet and it is a responsive image
                 if (current && !current[RILOADED] &&
-                    (selectorsApiSupported || current[CLASSNAME].indexOf('responsive') >= 0)) {
+                    (selectorsApiSupported || current[CLASSNAME].indexOf(className) >= 0)) {
                     images.push(current);
                 }
             }
@@ -220,15 +250,15 @@
         function imageOnloadCallback() {
             var img = this;
             img[ONLOAD] = img[ONERROR] = NULL;
-            img[CLASSNAME] = img[CLASSNAME].replace(/(^|\s)responsive(\s|$)/, '$1$2');
+            img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2');
             ONLOAD in options && options[ONLOAD].call(img); 
         }
         
         
         /*
          * Image onerror Callback
-         * If user sets 'retries' > 0, Riloadr will try to load an image n times if 
-         * an image fails to load.
+         * If user sets 'retries' > 0, Riloadr will try to load an image n times 
+         * if an image fails to load.
          */
         function imageOnerrorCallback() {
             var img = this;
@@ -243,11 +273,15 @@
         /*
          * Returns the URL of an image
          * If reload is TRUE, a timestamp is added to avoid caching.
+         * If serverBreakpoints is TRUE, screen related parameters are added
          */
         function getImageSrc(img, reload) {
-            return (img.getAttribute('data-base') || baseUrl) +
-                (img.getAttribute('data-'+imgSize) || '') +
-                (reload ? '?'+(new Date).getTime() : '');         
+            return (img.getAttribute('data-base') || base) +
+                (img.getAttribute('data-'+imgSize) || EMPTYSTRING) +
+                ((reload || serverBreakpoints) ? '?' : EMPTYSTRING) +
+                (reload ? 't='+(new Date).getTime() : EMPTYSTRING) + 
+                (serverBreakpoints ? (reload ? '&' : EMPTYSTRING)+'vwidth='+viewportWidth +
+                    '&swidth='+screenWidth+'&dpr='+devicePixelRatio : EMPTYSTRING);         
         } 
         
         
@@ -260,7 +294,7 @@
         
         
         /*
-         * Tells if an image is visible to the user or not (considering the threshold set). 
+         * Tells if an image is visible to the user or not. 
          */
         function isBelowTheFold(img) {
             var CLIENTHEIGHT = 'clientHeight', CLIENTTOP = 'clientTop'
@@ -268,7 +302,7 @@
               , clientHeight = doc.compatMode === 'CSS1Compat' && docElm[CLIENTHEIGHT] || 
                     body && body[CLIENTHEIGHT] || docElm[CLIENTHEIGHT];
         
-            return clientHeight <= img[GETBOUNDINGCLIENTRECT]().top - clientTop - threshold;                 
+            return clientHeight <= img[GETBOUNDINGCLIENTRECT]().top - clientTop - foldDistance;                 
         }
 
         
@@ -317,7 +351,7 @@
         
         /* 
          * The "riload" method allows you to load responsive images inserted into the 
-         * document after the DOM is ready or after win is loaded (useful for AJAX 
+         * document after the DOM is ready or after window is loaded (useful for AJAX 
          * content & markup created dynamically with javascript). 
          * Call this method after new markup is inserted into the document.
          */
@@ -334,7 +368,7 @@
             body = doc.body;
             parentNode = options.parentNode || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
-            imgSize = getSizeOfImages(options.media, viewportWidth); 
+            imgSize = getSizeOfImages(media, viewportWidth); 
             init();
         });
     };
@@ -356,9 +390,10 @@
      * Uses the viewport width to mimic CSS behavior.
      */
     function getSizeOfImages(media, vWidth) {
-        if (!media) throw new Error("Riloadr: Missing required 'media' property");
+        // Assume one image if media property is missing
+        if (!media) return 'src';
         
-        var imgSize = ''
+        var imgSize = EMPTYSTRING
           , size, tmpSize, minWidth, maxWidth;  
         
         for (size in media) {
@@ -387,14 +422,12 @@
      * Reference: http://www.quirksmode.org/mobile/tableViewport.html
      */
     function getViewportWidthInCssPixels() {
-        var devicePixelRatio = parseFloat(win.devicePixelRatio)
-          , screenWidth = win.screen.width
-          , widths = [docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
+        var widths = [docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
           , i = 0
           , l = widths[LENGTH];
           
         // HDPi screens
-        if (!isNaN(devicePixelRatio) && devicePixelRatio > 1) {
+        if (devicePixelRatio > 1) {
             return Math.ceil(screenWidth / devicePixelRatio);    
         }
         
@@ -497,7 +530,7 @@
         var w3c = 'add'+EVENTLISTENER in doc
           , add = w3c ? 'add'+EVENTLISTENER : 'attachEvent'
           , rem = w3c ? 'remove'+EVENTLISTENER : 'detachEvent'
-          , pre = w3c ? '' : ON;
+          , pre = w3c ? EMPTYSTRING : ON;
         
         addEvent = function(elem, type, fn) {
             elem[add](pre + type, fn, FALSE);
@@ -608,7 +641,7 @@
                 }
             }
             
-            // A fallback to win.onload, that will always work
+            // A fallback to window.onload, that will always work
             addEvent( win, LOAD, ready );
         } 
         
@@ -620,7 +653,7 @@
     
     
     /*
-     * Wrapper to attach load event handlers to the win
+     * Wrapper to attach load event handlers to the window
      * Notes: 
      * - Compatible with async script loading
      */
