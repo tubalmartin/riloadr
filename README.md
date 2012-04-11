@@ -147,7 +147,7 @@ Example 2:
 As you can see the flexibility is huge.  
 You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.  
 As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
-When Riloadr parses your `media` it mimics CSS behavior: First Riloadr computes the browser's viewport width in CSS pixels and then traverses your breakpoints to find out the appropiate image size to load.
+When Riloadr parses your `media` it mimics CSS behavior: First Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image url) and load the image. 
 
 ### onerror (*Function* | Optional)    
 Callback function that will be called if an image fails to load.  
@@ -174,8 +174,9 @@ Inside the callback the reserved keyword `this` refers to the image.
 ```
 
 ### parentNode (*DOM node* | Optional)  
-A reference to a DOM node/element where Riloadr must look for images to process.
-This is the key to create image groups.
+A reference to a DOM node/element where Riloadr must look for images to process.  
+This is the key to create image groups.  
+
 ```js
     var group1 = new Riloadr({
         parentNode: document.getElementById('main-column')
@@ -185,7 +186,8 @@ This is the key to create image groups.
         parentNode: document.getElementById('sidebar')
     });
 ```
-If `parentNode` is not set, it defaults to the `body` element (1 group).
+
+If `parentNode` is not set, it defaults to the `body` element (1 group).  
 
 ### retries (*Integer* | Optional)  
 Number of times Riloadr must try to load an image if it fails to load.
