@@ -36,7 +36,7 @@ To run the demos, download the repo, extract the files and open any `demo/*.html
 
 ## Configuration options
 
-**base** *String* | Optional  
+### base (*String*, Optional)  
 An absolute or relative path to all images in a group.
 
 ```js
@@ -144,9 +144,9 @@ Example 2:
     <img class="responsive" data-mobile="mobi/super.jpg" data-tablet="tablet/super.jpg" data-desktop="desktop/super.jpg">
 ```
 
-As you can see the flexibility is huge.
-You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.
-As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group. 
+As you can see the flexibility is huge.  
+You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.  
+As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
 When Riloadr parses your `media` it mimics CSS behavior: First Riloadr computes the browser's viewport width in CSS pixels and then traverses your breakpoints to find out the appropiate image size to load.
 
 **onerror** *Function* | Optional    
