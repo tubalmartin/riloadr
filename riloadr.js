@@ -107,14 +107,14 @@
           , foldDistance = +options.foldDistance || 100
           
             // CSS-like breakpoints configuration
-          , media = options.media || FALSE
+          , breakpoints = options.breakpoints || FALSE
           
             // Breakpoints are set on the server. Server chooses the image to deliver.
             // Riloadr notifies the server about the viewportWidth, screeWidth and 
             // devicePixelRatio appending a query string to the image src.
             // This allows developers to create/resize images on the server and 
             // deliver them on-the-fly.
-          , serverBreakpoints = !media && options.serverBreakpoints || FALSE
+          , serverBreakpoints = !breakpoints && options.serverBreakpoints || FALSE
             
             // DOM node where Riloadr must look for 'responsive' images.
             // Falls back to body if not set.
@@ -368,7 +368,7 @@
             body = doc.body;
             parentNode = options.parentNode || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
-            imgSize = getSizeOfImages(media, viewportWidth); 
+            imgSize = getSizeOfImages(breakpoints, viewportWidth); 
             init();
         });
     };
@@ -386,22 +386,22 @@
     
     
     /*
-     * Returns the property name (image size to use) of the 'media' object.
+     * Returns the property name (image size to use) of the 'breakpoints' object.
      * Uses the viewport width to mimic CSS behavior.
      */
-    function getSizeOfImages(media, vWidth) {
-        // Assume one image if media property is missing
-        if (!media) return 'src';
+    function getSizeOfImages(breakpoints, vWidth) {
+        // Assume one image if breakpoints property is missing
+        if (!breakpoints) return 'src';
         
         var imgSize = EMPTYSTRING
           , size, tmpSize, minWidth, maxWidth;  
         
-        for (size in media) {
+        for (size in breakpoints) {
             // Reset
             tmpSize = NULL;
             
-            minWidth = media[size]['minWidth'];
-            maxWidth = media[size]['maxWidth'];
+            minWidth = breakpoints[size]['minWidth'];
+            maxWidth = breakpoints[size]['maxWidth'];
         
             if (minWidth && maxWidth  && vWidth >= minWidth && vWidth <= maxWidth || 
                 minWidth && !maxWidth && vWidth >= minWidth || 

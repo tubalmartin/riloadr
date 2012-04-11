@@ -13,7 +13,7 @@ A cross-browser framework-independent responsive images loader.
 * **Freedom**: Riloadr tries to get out of your way. We don't like rigid conventions. 
 * **Absolute control**: Riloadr will process only the images you tell it to.
 * **One request per image**: Riloadr does not make multiple requests for the same image.
-* **Optimal image size delivery**: Riloadr mimics CSS, it computes the viewport's width in CSS pixels and the optimal image size for the viewport according to the breakpoints you set through the `media` option (sort of CSS media queries).
+* **Optimal image size delivery**: Riloadr mimics CSS, it computes the viewport's width in CSS pixels and the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
 * **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (faster pageload).
 * **Image groups**: You can create different Riloadr instances and configure each one to your needs (ie: One for images in the sidebar and another one for images in the main column).
 * **Image callbacks**: Riloadr allows you to attach callbacks for the `onload` and `onerror` image events.
@@ -54,6 +54,53 @@ If `base` is not set, Riloadr will check for the value of the `data-base` attrib
 ```html
     <img class="responsive" data-base="http://assets3.myserver.com/images/" data-xsmall="img_xs.jpg" data-small="img_s.jpg">
 ```
+
+### breakpoints (*Object* | Optional)  
+The `breakpoints` object contains `minWidth` and `maxWidth` breakpoints in CSS pixels in a similar way to media queries in CSS.  
+Let's see some examples:  
+Example 1:  
+
+```js
+    var group1 = new Riloadr({
+        base: '../images/',
+        breakpoints: {
+            xsmall: {maxWidth: 320},
+            small : {minWidth: 321, maxWidth: 480},
+            medium: {minWidth: 481, maxWidth: 768},
+            large : {minWidth: 769, maxWidth: 1024},
+            xlarge: {minWidth: 1025}
+        }
+    });
+```
+
+```html
+    <!-- HTML -->
+    <img class="responsive" data-xsmall="wow_xs.jpg" data-small="wow_s.jpg" data-medium="wow_m.jpg" data-large="wow_l.jpg" data-xlarge="wow_xl.jpg">
+```
+
+Example 2:  
+
+```js
+    var group2 = new Riloadr({
+        base: 'http://myserver.com/photos/',
+        breakpoints: {
+            mobile : {maxWidth: 320},
+            tablet : {minWidth: 321, maxWidth: 768},
+            desktop: {minWidth: 769}
+        }
+    });
+```
+
+```html
+    <!-- HTML -->
+    <img class="responsive" data-mobile="mobi/super.jpg" data-tablet="tablet/super.jpg" data-desktop="desktop/super.jpg">
+```
+
+As you can see the flexibility is huge.  
+You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.  
+As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
+When Riloadr parses your `breakpoints` it mimics CSS behavior: First Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image url) and load the image. 
+
 
 ### className (*String*, Optional)    
 A name to identify which images Riloadr must process.  
@@ -103,51 +150,6 @@ A group can check its images at the DOM ready state and immediately begin loadin
 
 If `foldDistance` is not set, it defaults to `100`px.  
 
-### media (*Object* | Optional)  
-The `media` object contains `minWidth` and `maxWidth` breakpoints in CSS pixels in a similar way to media queries in CSS.  
-Let's see some examples:  
-Example 1:  
-
-```js
-    var group1 = new Riloadr({
-        base: '../images/',
-        media: {
-            xsmall: {maxWidth: 320},
-            small : {minWidth: 321, maxWidth: 480},
-            medium: {minWidth: 481, maxWidth: 768},
-            large : {minWidth: 769, maxWidth: 1024},
-            xlarge: {minWidth: 1025}
-        }
-    });
-```
-
-```html
-    <!-- HTML -->
-    <img class="responsive" data-xsmall="wow_xs.jpg" data-small="wow_s.jpg" data-medium="wow_m.jpg" data-large="wow_l.jpg" data-xlarge="wow_xl.jpg">
-```
-
-Example 2:  
-
-```js
-    var group2 = new Riloadr({
-        base: 'http://myserver.com/photos/',
-        media: {
-            mobile : {maxWidth: 320},
-            tablet : {minWidth: 321, maxWidth: 768},
-            desktop: {minWidth: 769}
-        }
-    });
-```
-
-```html
-    <!-- HTML -->
-    <img class="responsive" data-mobile="mobi/super.jpg" data-tablet="tablet/super.jpg" data-desktop="desktop/super.jpg">
-```
-
-As you can see the flexibility is huge.  
-You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.  
-As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
-When Riloadr parses your `media` it mimics CSS behavior: First Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image url) and load the image. 
 
 ### onerror (*Function* | Optional)    
 Callback function that will be called if an image fails to load.  
@@ -201,7 +203,7 @@ Number of times Riloadr must try to load an image if it fails to load.
 If `retries` is not set, it defaults to `0` (no retries). 
 
 ### serverBreakpoints (*Boolean* | Optional)   
-If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and do not set the `media` option.
+If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and do not set the `breakpoints` option.
 If set to `true`, you must add the data attribute `data-src` on each `img` tag of a group because Riloadr will append a query string (GET request) to the value (URL) of the `data-src` attribute.  
 This query string will contain the following 3 parameters:
 
@@ -256,7 +258,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 ## To-Dos & Ideas
 
 * jQuery version (to reduce code size)
-* Give option to set min-device-pixel-ratio in media queries to allow delivery of High Resolution images?
+* Give option to set minDevicePixelRatio in `breakpoints` to allow delivery of High Resolution images?
 
 ## Contribute
 This project was originally created for my company as a need to handle different image sizes for different device screens in order to make websites load faster (specially for mobile devices). Please feel free to improve this project in any way you can.
