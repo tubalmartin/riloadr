@@ -99,7 +99,7 @@ Example 2:
 As you can see the flexibility is huge.  
 You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.  
 As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
-When Riloadr parses your `breakpoints` it mimics CSS behavior: First Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image url) and load the image. 
+When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image url) and load the image. 
 
 
 ### className (*String*, Optional)    
@@ -116,7 +116,7 @@ This name must be added to the `class` attribute of each `img` tag.
     <img class="rounded myClass" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
 ```
 
-If `className` is not set, Riloadr will check for images with the class `responsive`.
+If `className` is not set, Riloadr will look for images with the class `responsive`.
 
 ```html
     <img class="rounded responsive" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
@@ -189,6 +189,7 @@ This is the key to create image groups.
     });
 ```
 
+Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...).    
 If `parentNode` is not set, it defaults to the `body` element (1 group).  
 
 ### retries (*Integer* | Optional)  
