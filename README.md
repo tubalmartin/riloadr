@@ -2,9 +2,19 @@
 
 A cross-browser framework-independent responsive images loader.
 
-## Introduction
+**Table of Contents**  
 
+1.  [Features](#features)
+2.  [How to use](#howto)
+3.  [Configuration options](#options)
+4.  [Demos](#demos)
+5.  [Testing](#testing)
+6.  [To-Dos & Ideas](#todos)
+7.  [Contribute](#contribute)
+8.  [Bug tracker](#issues)
+9.  [License](#license)
 
+<a name="features"></a>
 
 ## Features
 
@@ -20,19 +30,17 @@ A cross-browser framework-independent responsive images loader.
 * **Image retries**: You can configure any Riloadr instance to retry *n* times the loading of an image if it failed to load.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
+* **AMD compatible**
+* **Can be loaded asynchronously**
 * **Lightweight**
 
-## Demos
-
-Demos are located [here](). Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.
-
-To run the demos, download the repo, extract the files and open any `demo/*.html` file in your browser.
-
-**Online demos you ask?** You got them [here]().
+<a name="howto"></a>
 
 ## How to use
 
 
+
+<a name="options"></a>
 
 ## Configuration options
 
@@ -98,8 +106,8 @@ Example 2:
 
 As you can see the flexibility is huge.  
 You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.  
-As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
-When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image url) and load the image. 
+As you may have already guessed, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
+When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image URL) to load the image. 
 
 
 ### className (*String*, Optional)    
@@ -204,7 +212,7 @@ Number of times Riloadr must try to load an image if it fails to load.
 If `retries` is not set, it defaults to `0` (no retries). 
 
 ### serverBreakpoints (*Boolean* | Optional)   
-If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and do not set the `breakpoints` option.  
+If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and omit the `breakpoints` option.  
 If set to `true`, you must add the data attribute `data-src` on each `img` tag of a group because Riloadr will append a query string (GET request) to the value (URL) of the `data-src` attribute.    
 This query string will contain the following 3 parameters:
 
@@ -230,9 +238,20 @@ Example of the GET request that will be sent to the server:
 http://www.domain.com/images/process.php?vwidth=1229&swidth=1920&dpr=1
 ```
 
+Riloadr does not provide a library/script to create/resize images on the server but you can find lots of them googling a bit :)  
 `serverBreakpoints` defaults to `false`.
 
+<a name="demos"></a>
 
+## Demos
+
+Demos are located [here](). Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.
+
+To run the demos, download the repo, extract the files and open any `demo/*.html` file in your browser.
+
+**Online demos you ask?** You got them [here]().
+
+<a name="testing"></a>
 
 ## Testing
 
@@ -256,10 +275,14 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 * Safari (Mac and Win)
 * Opera (Mac and Win)
 
+<a name="todos"></a>
+
 ## To-Dos & Ideas
 
 * jQuery version (to reduce code size)
 * Give option to set minDevicePixelRatio in `breakpoints` to allow delivery of High Resolution images?
+
+<a name="contribute"></a>
 
 ## Contribute
 This project was originally created for my company as a need to handle different image sizes for different device screens in order to make websites load faster (specially for mobile devices). Please feel free to improve this project in any way you can.
@@ -268,11 +291,15 @@ This project was originally created for my company as a need to handle different
 
 [@tubalmartin](https://twitter.com/#!/tubalmartin)
 
+<a name="issues"></a>
+
 ## Bug tracker
 
 Find a bug? Please create an issue here on GitHub!
 
 [Submit an issue](https://github.com/tubalmartin/riloadr/issues)
+
+<a name="license"></a>
 
 ## License
 
