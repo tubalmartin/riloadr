@@ -6,14 +6,14 @@ A cross-browser framework-independent responsive images loader.
 
 1.  [Features](#features)
 2.  [How to use](#howto)
-3.  [Configuration options](#options)
-4.  [Methods](#methods)
-5.  [Demos](#demos)
-6.  [Testing](#testing)
-7.  [To-Dos & Ideas](#todos)
-8.  [Contribute](#contribute)
-9.  [Bug tracker](#issues)
-10.  [License](#license)
+    1.  [Configuration options](#options)
+    2.  [Methods](#methods)
+3.  [Demos](#demos)
+4.  [Testing](#testing)
+5.  [To-Dos & Ideas](#todos)
+6.  [Contribute](#contribute)
+7.  [Bug tracker](#issues)
+8.  [License](#license)
 
 <a name="features"></a>
 
@@ -32,7 +32,7 @@ A cross-browser framework-independent responsive images loader.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
 * **AMD compatible**
-* **Lightweight**
+* **Lightweight**: 4kb minified
 
 <a name="howto"></a>
 
@@ -103,11 +103,19 @@ Example 2:
     <!-- HTML -->
     <img class="responsive" data-mobile="mobi/super.jpg" data-tablet="tablet/super.jpg" data-desktop="desktop/super.jpg">
 ```
+  
+You can configure as many breakpoints (or size ranges) as you need.  
+You are free to choose the breakpoint names you like most.  
+Each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
+**Important!**:  
+When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image URL) to load the image.  
+Remember, Riloadr *mimics CSS* and as such, it works with CSS pixels not device pixels. So when you define your breakpoints follow this simple rule to calculate the minWidth and maxWidth values:  
 
-As you can see the flexibility is huge.  
-You can configure as many breakpoints or size ranges as you need and you can assign the name you prefer to each breakpoint.  
-As you may have already guessed, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
-When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image URL) to load the image. 
+`device screen width / device pixel ratio = width in CSS pixels`  
+
+An example:  
+You need to target the iPhone 4 which in portrait mode has a screen width (device pixels) of 640px.
+The iPhone 4 has a device pixel ratio of 2 (2 device pixels equal 1 CSS pixel) so if we apply the formula above to calculate the width in CSS pixels we get a width of 320px. This is the value that you should set as `minWidth` to target the iPhone 3 & 4.
 
 
 ### className (*String*, Optional)    
