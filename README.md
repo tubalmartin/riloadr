@@ -38,7 +38,7 @@ A cross-browser framework-independent responsive images loader.
 
 ## 2. How to use
 
-
+*TODO*
 
 <a name="options"></a>
 
@@ -62,6 +62,8 @@ If `base` is not set, Riloadr will check for the value of the `data-base` attrib
 ```html
     <img class="responsive" data-base="http://assets3.myserver.com/images/" data-xsmall="img_xs.jpg" data-small="img_s.jpg">
 ```
+
+***
 
 ### breakpoints (*Object* | Optional)  
 The `breakpoints` object contains `minWidth` and `maxWidth` breakpoints in CSS pixels in a similar way to media queries in CSS.  
@@ -119,6 +121,7 @@ You need to target the iPhone 4 which in portrait mode has a screen width (devic
 The iPhone 4 has a device pixel ratio of 2 (2 device pixels equal 1 CSS pixel) so if we apply the formula above we get a width of 320 CSS pixels.  
 This is the value that you should set as `minWidth` to target the iPhone 3 & 4.
 
+***
 
 ### className (*String*, Optional)    
 A name to identify which images Riloadr must process.  
@@ -140,6 +143,8 @@ If `className` is not set, Riloadr will look for images with the class `responsi
     <img class="rounded responsive" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
 ```
 
+***
+
 ### defer (*String*, Optional)  
 Tells Riloadr to defer the load of images.  
 Two values available:  
@@ -156,6 +161,8 @@ Two values available:
 If `belowfold` mode is set and Opera Mini is used, Riloadr falls back to `load`.  
 If `belowfold` mode is set and the browser does not support the `getBoundingClientRect` method, Riloadr falls back to `load`.  
 
+***
+
 ### foldDistance (*Integer* | Optional)  
 A group can check its images at the DOM ready state and immediately begin loading those that are above the fold (i.e., inside the current viewport) while delaying the load of those that aren't. Just set a value (in pixels) for the `foldDistance` property of the group. Images are checked and loaded in a cascading fashion. That is, each image will be loaded only when it comes within `foldDistance` pixels of the bottom of the viewport. The effect is that images are loaded as needed as the user scrolls down the page. When you set a `foldDistance`, the group automatically gets window `scroll`, `resize` and `orientationchange` triggers.
 
@@ -168,6 +175,7 @@ A group can check its images at the DOM ready state and immediately begin loadin
 
 If `foldDistance` is not set, it defaults to `100`px.  
 
+***
 
 ### onerror (*Function* | Optional)    
 Callback function that will be called if an image fails to load.  
@@ -181,6 +189,8 @@ Inside the callback the reserved keyword `this` refers to the image.
     });
 ```
 
+***
+
 ### onload (*Function* | Optional)  
 Callback function that will be called if an image loads successfully.  
 Inside the callback the reserved keyword `this` refers to the image.
@@ -192,6 +202,8 @@ Inside the callback the reserved keyword `this` refers to the image.
         }
     });
 ```
+
+***
 
 ### parentNode (*DOM node* | Optional)  
 A reference to a DOM node/element where Riloadr must look for images to process.  
@@ -253,7 +265,8 @@ http://www.domain.com/images/process.php?vwidth=1229&swidth=1920&dpr=1
 ```
 
 Riloadr does not provide a library/script to create/resize images on the server but you can find lots of them googling a bit :)  
-**Warning**:  
+
+**Warning!**:  
 This method is not cache/proxy friendly because we're using query strings and 3 parameters that will change from one browser/device to another.  
 Even if we didn't use query strings, it wouldn't be cache friendly either because the likelihood that URLs change from one device to another is really high and you can end up easily with 100 different URLs for the same image and size instead of 1 per image/size combination.  
 
@@ -263,10 +276,13 @@ Even if we didn't use query strings, it wouldn't be cache friendly either becaus
 
 ## 2.2. Methods
 
+*TODO*
 
 <a name="demos"></a>
 
 ## Demos
+
+*TODO*
 
 Demos are located [here](https://github.com/tubalmartin/riloadr/tree/master/demos).  
 Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.  
