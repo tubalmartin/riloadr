@@ -55,7 +55,7 @@ If `base` is not set, Riloadr will check for the value of the `data-base` attrib
     <img class="responsive" data-base="http://assets3.myserver.com/images/" data-xsmall="img_xs.jpg" data-small="img_s.jpg">
 ```
 
-**className** *String* | Optional   
+### className (*String*, Optional)    
 A name to identify which images Riloadr must process.  
 This name must be added to the `class` attribute of each `img` tag.  
 
@@ -75,7 +75,7 @@ If `className` is not set, Riloadr will check for images with the class `respons
     <img class="rounded responsive" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
 ```
 
-**defer** *String* | Optional (See foldDistance)  
+### defer (*String*, Optional)  
 Tells Riloadr to defer the load of images.  
 Two values available:  
 
@@ -91,7 +91,7 @@ Two values available:
 If `belowfold` mode is set and Opera Mini is used, Riloadr falls back to `load`.  
 If `belowfold` mode is set and the browser does not support the `getBoundingClientRect` method, Riloadr falls back to `load`.  
 
-**foldDistance** *Integer* | Optional  
+### foldDistance (*Integer* | Optional)  
 A group can check its images at the DOM ready state and immediately begin loading those that are above the fold (i.e., inside the current viewport) while delaying the load of those that aren't. Just set a value (in pixels) for the `foldDistance` property of the group. Images are checked and loaded in a cascading fashion. That is, each image will be loaded only when it comes within `foldDistance` pixels of the bottom of the viewport. The effect is that images are loaded as needed as the user scrolls down the page. When you set a `foldDistance`, the group automatically gets window `scroll`, `resize` and `orientationchange` triggers.
 
 ```js
@@ -103,7 +103,7 @@ A group can check its images at the DOM ready state and immediately begin loadin
 
 If `foldDistance` is not set, it defaults to `100`px.  
 
-**media** *Object* | Optional  
+### media (*Object* | Optional)  
 The `media` object contains `minWidth` and `maxWidth` breakpoints in CSS pixels in a similar way to media queries in CSS.  
 Let's see some examples:  
 Example 1:  
@@ -149,7 +149,7 @@ You can configure as many breakpoints or size ranges as you need and you can ass
 As you may already deduced, each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
 When Riloadr parses your `media` it mimics CSS behavior: First Riloadr computes the browser's viewport width in CSS pixels and then traverses your breakpoints to find out the appropiate image size to load.
 
-**onerror** *Function* | Optional    
+### onerror (*Function* | Optional)    
 Callback function that will be called if an image fails to load.  
 Inside the callback the reserved keyword `this` refers to the image.
 
@@ -161,7 +161,7 @@ Inside the callback the reserved keyword `this` refers to the image.
     });
 ```
 
-**onload** *Function* | Optional  
+### onload (*Function* | Optional)  
 Callback function that will be called if an image loads successfully.  
 Inside the callback the reserved keyword `this` refers to the image.
 
@@ -173,7 +173,7 @@ Inside the callback the reserved keyword `this` refers to the image.
     });
 ```
 
-**parentNode** *DOM node* | Optional  
+### parentNode (*DOM node* | Optional)  
 A reference to a DOM node/element where Riloadr must look for images to process.
 This is the key to create image groups.
 ```js
@@ -187,7 +187,7 @@ This is the key to create image groups.
 ```
 If `parentNode` is not set, it defaults to the `body` element (1 group).
 
-**retries** *Integer* | Optional  
+### retries (*Integer* | Optional)  
 Number of times Riloadr must try to load an image if it fails to load.
 
 ```js
@@ -198,7 +198,7 @@ Number of times Riloadr must try to load an image if it fails to load.
 
 If `retries` is not set, it defaults to `0` (no retries). 
 
-**serverBreakpoints** *Boolean* | Optional   
+### serverBreakpoints (*Boolean* | Optional)   
 If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and do not set the `media` option.
 If set to `true`, you must add the data attribute `data-src` on each `img` tag of a group because Riloadr will append a query string (GET request) to the value (URL) of the `data-src` attribute.  
 This query string will contain the following 3 parameters:
