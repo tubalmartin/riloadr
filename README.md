@@ -204,8 +204,8 @@ Number of times Riloadr must try to load an image if it fails to load.
 If `retries` is not set, it defaults to `0` (no retries). 
 
 ### serverBreakpoints (*Boolean* | Optional)   
-If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and do not set the `breakpoints` option.
-If set to `true`, you must add the data attribute `data-src` on each `img` tag of a group because Riloadr will append a query string (GET request) to the value (URL) of the `data-src` attribute.  
+If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and do not set the `breakpoints` option.  
+If set to `true`, you must add the data attribute `data-src` on each `img` tag of a group because Riloadr will append a query string (GET request) to the value (URL) of the `data-src` attribute.    
 This query string will contain the following 3 parameters:
 
 * `vwidth`: The viewport width in CSS pixels.
