@@ -239,7 +239,9 @@ http://www.domain.com/images/process.php?vwidth=1229&swidth=1920&dpr=1
 ```
 
 Riloadr does not provide a library/script to create/resize images on the server but you can find lots of them googling a bit :)  
-**Warning**: This method is not cache/proxy friendly because we're using query strings and 3 parameters that will change from one device to another. Even if we didn't use query strings, it wouldn't be cache friendly because the probability that the URL changes from one device to another is really high. You can end up easily with 100 different URLs for the same image and size.  
+**Warning**:  
+This method is not cache/proxy friendly because we're using query strings and 3 parameters that will change from one browser/device to another.  
+Even if we didn't use query strings, it wouldn't be cache friendly either because the likelihood that URLs change from one device to another is really high and you can end up easily with 100 different URLs for the same image and size instead of 1 per image/size combination.  
 
 `serverBreakpoints` defaults to `false`.
 
@@ -286,8 +288,9 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 ## To-Dos & Ideas
 
-* jQuery version (to reduce code size)
-* Give option to set minDevicePixelRatio in `breakpoints` to allow delivery of High Resolution images?
+* jQuery version (to reduce code size) -> Will do!
+* Give option to set minDevicePixelRatio in `breakpoints` to allow delivery of High Resolution images? -> Probably
+* Create plugin to add the option `serverCookie` (if user wants to use `serverBreakpoints`) to set a cookie in order to pass the server the screen/viewport calculated values? -> Don't know!
 
 <a name="contribute"></a>
 
