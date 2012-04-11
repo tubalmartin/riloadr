@@ -7,12 +7,13 @@ A cross-browser framework-independent responsive images loader.
 1.  [Features](#features)
 2.  [How to use](#howto)
 3.  [Configuration options](#options)
-4.  [Demos](#demos)
-5.  [Testing](#testing)
-6.  [To-Dos & Ideas](#todos)
-7.  [Contribute](#contribute)
-8.  [Bug tracker](#issues)
-9.  [License](#license)
+4.  [Methods](#methods)
+5.  [Demos](#demos)
+6.  [Testing](#testing)
+7.  [To-Dos & Ideas](#todos)
+8.  [Contribute](#contribute)
+9.  [Bug tracker](#issues)
+10.  [License](#license)
 
 <a name="features"></a>
 
@@ -31,7 +32,6 @@ A cross-browser framework-independent responsive images loader.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
 * **AMD compatible**
-* **Can be loaded asynchronously**
 * **Lightweight**
 
 <a name="howto"></a>
@@ -241,13 +241,18 @@ http://www.domain.com/images/process.php?vwidth=1229&swidth=1920&dpr=1
 Riloadr does not provide a library/script to create/resize images on the server but you can find lots of them googling a bit :)  
 `serverBreakpoints` defaults to `false`.
 
+<a name="methods"></a>
+
+## Methods
+
+
 <a name="demos"></a>
 
 ## Demos
 
-Demos are located [here](). Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.
-
-To run the demos, download the repo, extract the files and open any `demo/*.html` file in your browser.
+Demos are located [here](https://github.com/tubalmartin/riloadr/tree/master/demos).  
+Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.  
+To run the demos, download the repo, extract the files and open any `demo/*.html` file in your browser.  
 
 **Online demos you ask?** You got them [here]().
 
