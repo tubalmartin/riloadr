@@ -2,6 +2,9 @@
 
 A cross-browser framework-independent responsive images loader.
 
+The goal of this technique is to deliver optimized, contextual image sizes in responsive layouts that utilize dramatically different image sizes at different resolutions.  
+Ideally, this could enable developers to start with mobile-optimized images in their HTML and specify a larger size to be used for users with larger screen resolutions -- without requesting both image sizes, and without UA sniffing.  
+
 **Table of Contents**  
 
 1.  [Features](#features)
@@ -20,7 +23,7 @@ A cross-browser framework-independent responsive images loader.
 ## 1. Features
 
 * **No dependencies**: Just Riloadr, HTML and CSS (No server involved if you don't want to, no cookies, no .htaccess, no other Javascript library or framework required).
-* **Ease of use**: 5-15 mins reading the docs and checking some demos and you're good to go!
+* **Ease of use**: 15-30 mins reading the docs and checking some demos and you're good to go!
 * **Freedom**: Riloadr tries to get out of your way. We don't like rigid conventions. 
 * **Absolute control**: Riloadr will process only the images you tell it to.
 * **One request per image**: Riloadr does not make multiple requests for the same image.
@@ -39,7 +42,124 @@ A cross-browser framework-independent responsive images loader.
 
 ## 2. How to use
 
-*TODO*
+Riloadr got inspired by the technique used in the [YUI image loader](http://yuilibrary.com/yui/docs/imageloader/).  
+
+The main idea behind this technique is to leave the `src` attribute of `img` tags out of the HTML element altogether.
+
+This way we avoid making multiple requests to the server for different sizes of an image. Once Riloadr chooses the best size to deliver for the current screen, it sets the `src` value and the image is requested.
+
+I'll use some code to explain how to use Riloadr, it should be self explanatory.
+
+```html
+<!doctype html>
+<!-- 
+     Let's add a 'no-js' class to the <html> element so that
+     if the browser does not support Javascript, we can target
+     in CSS images without an 'src' attribute and remove them 
+     from the document flow. 
+     Riloadr and Modernizr will remove this 'no-js' class ASAP.
+     HTML5 boilerplate uses this technique, so use it!
+-->
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <!-- Mobile viewport optimization: Required!! -->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="0">
+    <meta name="viewport" content="width=device-width">
+    
+    <!-- Recommended CSS styles --> 
+    <style type="text/css">
+        img {
+            max-width: 100%; /* To make all images fluid */
+        }
+        /* Riloadr styles for image groups */
+        img.group1, 
+        img.group2 {
+            visibility: hidden /* To make responsive images not visible until loaded. */
+            min-height: 100px /* To give responsive images some height until loaded. */
+        }
+        .no-js img.group1,
+        .no-js img.group2 {
+            display: none /* To remove responsive images if Javascript is disabled */
+        }
+    </style>
+    
+    <!-- Include Riloadr (preferrably in the <head>) --> 
+    <script type="text/javascript" src="riloadr.min.js"></script>
+    
+    <!-- Once Riloadr is loaded, set up your image groups -->
+    <script type="text/javascript">
+        /* Image group 1: Minimal Js configuration, just the breakpoints.
+         * The group's name will be 'responsive' and the root will be the <body> element
+         * The base URL for each image must be included in each <img> tag
+         * Images will be loaded as soon as the DOM is ready.
+         */
+        var group1 = new Riloadr({
+            breakpoints: {
+                w320: {maxWidth: 320},
+                w640: {minWidth: 321, maxWidth: 640},
+                w1024: {minWidth: 641}
+            }
+        });
+        
+        // Image group 2: Full Js configuration. 
+        // To know what each setting does read the configuration options
+        var group2 = new Riloadr({
+            root: document.getElementById('main-column'),
+            name: 'main-col-images',
+            base: "images/",
+            defer: "belowfold",
+            foldDistance: 125,
+            onload: function(){
+                // Image x is loaded
+            },
+            onerror: function(){
+                // Image x failed to load, Riloadr will try to load it one more time
+            },
+            retries: 1,
+            breakpoints: {
+                small : {maxWidth: 320},
+                medium: {minWidth: 321, maxWidth: 640},
+                large : {minWidth: 641}
+            }
+        });   
+    </script>
+</head>
+<body>
+    <header>
+        <!-- You can set the base URL for all image sizes adding a 'data-base' attribute -->
+        <img class="responsive" alt="Tahiti" data-base="images/" data-w320="tahiti_320.jpg" data-w640="tahiti_640.jpg" data-w1024="tahiti_1024.jpg">
+        <!-- 
+            Use the <noscript> tag to show images to browsers with no Javascript support.
+            Deliver to these browsers the smallest image size (Mobile first approach).
+        -->
+        <noscript>
+            <img alt="Tahiti" src="images/tahiti_320.jpg">
+        </noscript>
+        
+        <!-- You can set the full src path for each image size (no 'base' URL) -->
+        <img class="responsive" alt="Cocoa Beach" data-w320="images/cocoa_320.jpg" data-w640="images/cocoa_640.jpg" data-w1024="images/cocoa_1024.jpg">
+        <noscript>
+            <img alt="Cocoa Beach" src="images/cocoa_320.jpg">
+        </noscript>
+    </header>
+    
+    <div id="main-column">
+        <img class="main-col-images" alt="La Jolla" data-small="jolla_320.jpg" data-medium="jolla_640.jpg" data-large="jolla_1024.jpg">
+        <noscript>
+            <img alt="La Jolla" src="images/jolla_320.jpg">
+        </noscript>
+        
+        <img class="main-col-images" alt="Morro Rocks" data-small="morro_320.jpg" data-medium="morro_640.jpg" data-large="morro_1024.jpg">
+        <noscript>
+            <img alt="Morro Rocks" src="images/morro_320.jpg">
+        </noscript>
+    </div>
+</body>
+</html>
+```
 
 <a name="options"></a>
 
@@ -69,7 +189,9 @@ If `base` is set and an image has a `data-base` attribute, the attribute's value
 ***
 
 ### breakpoints (*Object* | Optional)  
-The `breakpoints` object contains `minWidth` and `maxWidth` breakpoints in CSS pixels in a similar way to media queries in CSS.  
+The `breakpoints` object works in a similar way to media queries in CSS.  
+You can define `minWidth` and `maxWidth` properties. Values should be expressed in CSS pixels.  
+
 Let's see some examples:  
 Example 1:  
 
@@ -364,7 +486,7 @@ Note this method will load exclusively images belonging to the group (Riloadr ob
         breakpoints: {...}
     });
     
-    // Code that adds images to the group (body element in this case)
+    // Code that adds images to the group's root element (body)
     ...
     
     // After inserting the images, call riload() to load them 
