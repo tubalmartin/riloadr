@@ -208,7 +208,7 @@ Inside the callback the reserved keyword `this` refers to the image.
 
 ### parentNode (*DOM node* | Optional)  
 A reference to a DOM node/element where Riloadr must look for images to process.  
-This is the key to create image groups.  
+This option is the key to create image groups.  
 
 ```js
     var group1 = new Riloadr({
@@ -220,7 +220,36 @@ This is the key to create image groups.
     });
 ```
 
-Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...).    
+Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...). 
+
+But, let's go one step further and suppose you want to deliver images from different subdomains. If you add the `className` (and `base` optionally) option to the mix, you could create a group for each subdomain even if images share the same `parentNode`:  
+
+```js
+    // Both groups share the same 'parentNode' but each group will process 
+    // the images identified by the 'className' option.
+    var group1 = new Riloadr({
+        parentNode: document.getElementById('main-column'),
+        base: 'http://images1.example.com/',
+        className: 'sub1'
+    });
+    
+    var group2 = new Riloadr({
+        parentNode: document.getElementById('main-column'),
+        base: 'http://images2.example.com/',
+        className: 'sub2'
+    });
+```
+
+```html
+    <!-- HTML -->
+    <div id="main-column">
+       <img class="sub1" data-mobile="img_mobile1.jpg" data-desktop="img_desktop1.jpg">
+       <img class="sub2" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
+       <img class="sub1" data-mobile="img_mobile3.jpg" data-desktop="img_desktop3.jpg">
+       <img class="sub2" data-mobile="img_mobile4.jpg" data-desktop="img_desktop4.jpg">
+    </div>   
+```
+
 If `parentNode` is not set, it defaults to the `body` element (1 group).  
 
 ***
