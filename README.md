@@ -320,7 +320,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 * jQuery version (to reduce code size) -> Will do!
 * Give option to set minDevicePixelRatio in `breakpoints` to allow delivery of High Resolution images? -> Probably
-* Create plugin to add the option `serverCookie` (if user wants to use `serverBreakpoints`) to set a cookie in order to pass the server the screen/viewport calculated values? -> Don't know!
+* Create plugin that adds the option `serverCookie` (if `serverBreakpoints` is true) to set a cookie (instead of query string) in order to send the screen/viewport calculated values to the server? -> Maybe!
 
 <a name="contribute"></a>
 
