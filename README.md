@@ -2,8 +2,7 @@
 
 A cross-browser framework-independent responsive images loader.
 
-The goal of this technique is to deliver optimized, contextual image sizes in responsive layouts that utilize dramatically different image sizes at different resolutions.  
-Ideally, this could enable developers to start with mobile-optimized images in their HTML and specify a larger size to be used for users with larger screen resolutions -- without requesting both image sizes, and without UA sniffing.  
+The goal of this technique is to deliver optimized, contextual image sizes in responsive layouts that utilize dramatically different image sizes at different resolutions. Ideally, this could enable developers to start with mobile-optimized images in their HTML and specify a larger size to be used for users with larger screen resolutions -- without requesting both image sizes, and without UA sniffing.  
 
 **Table of Contents**  
 
@@ -42,7 +41,7 @@ Ideally, this could enable developers to start with mobile-optimized images in t
 
 ## 2. How to use
 
-Riloadr got inspired by the technique used in the [YUI image loader](http://yuilibrary.com/yui/docs/imageloader/).  
+Riloadr got inspired by the technique used by the [YUI image loader](http://yuilibrary.com/yui/docs/imageloader/).  
 
 The main idea behind this technique is to leave the `src` attribute of `img` tags out of the HTML element altogether.
 
@@ -75,13 +74,13 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
             max-width: 100%; /* To make all images fluid */
         }
         /* Riloadr styles for image groups */
-        img.group1, 
-        img.group2 {
+        img.responsive, 
+        img.main-col-images {
             visibility: hidden /* To make responsive images not visible until loaded. */
             min-height: 100px /* To give responsive images some height until loaded. */
         }
-        .no-js img.group1,
-        .no-js img.group2 {
+        .no-js img.responsive,
+        .no-js img.main-col-images {
             display: none /* To remove responsive images if Javascript is disabled */
         }
     </style>
@@ -105,7 +104,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         });
         
         // Image group 2: Full Js configuration. 
-        // To know what each setting does read the configuration options
+        // To know what each setting does read the 'configuration options' section
         var group2 = new Riloadr({
             root: document.getElementById('main-column'),
             name: 'main-col-images',
@@ -182,6 +181,12 @@ If `base` is not set, Riloadr will check for the value of the `data-base` attrib
 
 ```html
     <img class="responsive" data-base="http://assets3.myserver.com/images/" data-xsmall="img_xs.jpg" data-small="img_s.jpg">
+```
+
+If `base` is not set and the `data-base` attribute is missing in an image, Riloadr will use the value of each `data-{breakpoint-name}` attribute for that image.
+
+```html
+    <img class="responsive" data-xsmall="http://assets3.myserver.com/images/img_xs.jpg" data-small="http://assets3.myserver.com/images/img_s.jpg">
 ```
 
 If `base` is set and an image has a `data-base` attribute, the attribute's value overrides the `base` option for that image.
