@@ -506,7 +506,7 @@ Note this method will load exclusively images belonging to the group (Riloadr ob
 
 <a name="demos"></a>
 
-## Demos
+## 3. Demos
 
 Demos are located [here](https://github.com/tubalmartin/riloadr/tree/master/demos).  
 Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.  
@@ -514,7 +514,7 @@ To run the demos, download the repo, extract the files (optionally upload them t
 
 <a name="testing"></a>
 
-## Testing
+## 4. Testing
 
 Riloadr's goal has always been to work cross-browser, both desktop and mobile, and not require any javascript libraries, frameworks or any other dependencies except HTML and CSS. If you come across any problems please help us by submitting an issue and we'll work to improve it. Below are the primary browsers Riloadr has been tested against.
 
@@ -538,7 +538,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 <a name="todos"></a>
 
-## To-Dos & Ideas
+## 5. To-Dos & Ideas
 
 * jQuery version (to reduce code size) -> Will do!
 * Give option to set minDevicePixelRatio in `breakpoints` to allow delivery of High Resolution images? -> Probably
@@ -546,7 +546,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 <a name="contribute"></a>
 
-## Contribute
+## 6. Contribute
 This project was originally created for my company as a need to handle different image sizes for different device screens in order to make websites load faster (specially for mobile devices). Please feel free to improve this project in any way you can.
 
 **Contact Me**
@@ -555,7 +555,7 @@ This project was originally created for my company as a need to handle different
 
 <a name="issues"></a>
 
-## Bug tracker
+## 7. Bug tracker
 
 Find a bug? Please create an issue here on GitHub!
 
@@ -563,7 +563,7 @@ Find a bug? Please create an issue here on GitHub!
 
 <a name="license"></a>
 
-## License
+## 8. License
 
 Copyright (c) 2012 Tubal Martin
 
