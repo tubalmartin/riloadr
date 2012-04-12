@@ -31,8 +31,9 @@ A cross-browser framework-independent responsive images loader.
 * **Image retries**: You can configure any Riloadr instance to retry *n* times the loading of an image if it failed to load.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
-* **AMD compatible**
 * **Lightweight**: 4kb minified
+* **AMD compatible**
+* **MIT License**
 
 <a name="howto"></a>
 
@@ -345,5 +346,5 @@ Find a bug? Please create an issue here on GitHub!
 
 Copyright (c) 2012 Tubal Martin
 
-Licensed under the MIT license.
+Licensed under the [MIT license](https://github.com/tubalmartin/riloadr/blob/master/LICENSE.txt).
 
