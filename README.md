@@ -2,7 +2,7 @@
 
 A cross-browser framework-independent responsive images loader.
 
-The goal of this technique is to deliver optimized, contextual image sizes in responsive layouts that utilize dramatically different image sizes at different resolutions. Ideally, this could enable developers to start with mobile-optimized images in their HTML and specify a larger size to be used for users with larger screen resolutions -- without requesting both image sizes, and without UA sniffing.  
+The goal of this library is to deliver optimized, contextual image sizes in responsive layouts that utilize dramatically different image sizes at different resolutions. Ideally, this could enable developers to start with mobile-optimized images in their HTML and specify a larger size to be used for users with larger screen resolutions -- without requesting both image sizes, and without UA sniffing.  
 
 **Table of Contents**  
 
@@ -45,7 +45,11 @@ Riloadr got inspired by the technique used by the [YUI image loader](http://yuil
 
 The main idea behind this technique is to leave the `src` attribute of `img` tags out of the HTML element altogether.
 
-This way we avoid making multiple requests to the server for different sizes of an image. Once Riloadr chooses the best size to deliver for the current screen, it sets the `src` value and the image is requested.
+This way we avoid making multiple requests to the server for different sizes of an image. Once Riloadr chooses the best size to deliver for the current screen, it adds the `src` attribute and the image is requested.
+
+**Warning!**:   
+Do not set an empty string for the value of src `src=""`.   
+Some browsers react to this by assuming the empty string means `src="/"`, and consequently the browser re-requests the current HTML page and tries to stuff it into the`<img>` element. This is bad news for performance.
 
 I'll use some code to explain how to use Riloadr, it should be self explanatory.
 
@@ -138,7 +142,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
             <img alt="Tahiti" src="images/tahiti_320.jpg">
         </noscript>
         
-        <!-- You can set the full src path for each image size (no 'base' URL) -->
+        <!-- You can set the full src path for each image size (no 'base' option nor 'data-base' attribute) -->
         <img class="responsive" alt="Cocoa Beach" data-w320="images/cocoa_320.jpg" data-w640="images/cocoa_640.jpg" data-w1024="images/cocoa_1024.jpg">
         <noscript>
             <img alt="Cocoa Beach" src="images/cocoa_320.jpg">
@@ -238,7 +242,7 @@ Example 2:
   
 Configure as many breakpoints (or size ranges) as you need.  
 Choose the breakpoint names you like most.  
-Each breakpoint name needs to have its counterpart HTML `data-{name}` attribute on each image of a group.  
+Each breakpoint name needs to have its counterpart HTML `data-{breakpoint-name}` attribute on each image of a group.  
 
 **Important!**:   
 When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image URL) to load the image.  
@@ -363,6 +367,7 @@ If `name` is not set, Riloadr will look for images with the class `responsive`.
 ### onerror (*Function* | Optional)    
 Callback function that will be called if an image fails to load.  
 Inside the callback the reserved keyword `this` refers to the image.
+If `retries` is set to a number greater than `0`, Riloadr will automatically try to load that image a maximum of `retries` times. 
 
 ```js
     var group1 = new Riloadr({
@@ -480,7 +485,7 @@ Even if we didn't use query strings, it wouldn't be cache friendly either becaus
 ## 2.2. Methods
 
 ### riload()
-This method allows you to load responsive images inserted into the document after the DOM is ready or after window is loaded.   
+This method allows you to load responsive images inserted into the document after the initial page load.   
 Call this method after new markup is inserted into the document (useful for AJAX content & markup created dynamically with javascript).  
 Note this method will load exclusively images belonging to the group (Riloadr object) that invoked `riload()`.
 
@@ -503,13 +508,9 @@ Note this method will load exclusively images belonging to the group (Riloadr ob
 
 ## Demos
 
-*TODO*
-
 Demos are located [here](https://github.com/tubalmartin/riloadr/tree/master/demos).  
 Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.  
-To run the demos, download the repo, extract the files and open any `demo/*.html` file in your browser.  
-
-**Online demos you ask?** You got them [here]().
+To run the demos, download the repo, extract the files (optionally upload them to an online server) and open any `demo/*.html` file in your browser.  
 
 <a name="testing"></a>
 
