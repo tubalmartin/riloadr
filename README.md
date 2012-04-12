@@ -160,7 +160,7 @@ If `foldDistance` is not set, it defaults to `100`px.
 
 ### name (*String*, Optional)    
 A name to identify which images Riloadr must process.  
-This name must be added to the `class` attribute of each `img` tag in a group.
+This name must be added to the `class` attribute of each `img` tag in a group.  
 When you create a Riloadr object, you're creating an image group.  
 You can create different image groups setting a different `name` option on each Riloadr object even if all images share the same `root`. 
 
@@ -352,7 +352,25 @@ Even if we didn't use query strings, it wouldn't be cache friendly either becaus
 
 ## 2.2. Methods
 
-*TODO*
+### riload()
+This method allows you to load responsive images inserted into the document after the DOM is ready or after window is loaded.   
+Call this method after new markup is inserted into the document (useful for AJAX content & markup created dynamically with javascript).  
+Note this method will load exclusively images belonging to the group (Riloadr object) that invoked `riload()`.
+
+```js
+    // Create an image group (root = body)
+    var group1 = new Riloadr({
+        name: 'resp-images',
+        breakpoints: {...}
+    });
+    
+    // Code that adds images to the group (body element in this case)
+    ...
+    
+    // After inserting the images, call riload() to load them 
+    group1.riload();
+```
+
 
 <a name="demos"></a>
 
