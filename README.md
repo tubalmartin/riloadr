@@ -222,21 +222,23 @@ This option is the key to create image groups.
 
 Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...). 
 
-But, let's go one step further and suppose you want to deliver images from different subdomains. If you add the `className` (and `base` optionally) option to the mix, you could create a group for each subdomain even if images share the same `parentNode`:  
+But, let's go one step further and suppose you want to deliver images from different subdomains. If you add the `className` option to the mix (and `base` optionally), you can create a group for each subdomain even if all images share the same `parentNode`:  
 
 ```js
     // Both groups share the same 'parentNode' but each group will process 
-    // the images identified by the 'className' option.
+    // exclusively the images identified by the 'className' option.
     var group1 = new Riloadr({
         parentNode: document.getElementById('main-column'),
         base: 'http://images1.example.com/',
-        className: 'sub1'
+        className: 'sub1',
+        breakpoints: { ... }
     });
     
     var group2 = new Riloadr({
         parentNode: document.getElementById('main-column'),
         base: 'http://images2.example.com/',
-        className: 'sub2'
+        className: 'sub2',
+        breakpoints: { ... }
     });
 ```
 
