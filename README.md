@@ -26,9 +26,9 @@ A cross-browser framework-independent responsive images loader.
 * **One request per image**: Riloadr does not make multiple requests for the same image.
 * **Optimal image size delivery**: Riloadr mimics CSS, it computes the viewport's width in CSS pixels and the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
 * **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (faster pageload).
-* **Image groups**: You can create different Riloadr instances and configure each one to your needs (ie: One for images in the sidebar and another one for images in the main column).
+* **Image groups**: You can create different Riloadr objects and configure each one to your needs (ie: One for images in the sidebar and another one for images in the main column).
 * **Image callbacks**: Riloadr allows you to attach callbacks for the `onload` and `onerror` image events.
-* **Image retries**: You can configure any Riloadr instance to retry *n* times the loading of an image if it failed to load.
+* **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
 * **Lightweight**: 4kb minified
@@ -63,6 +63,8 @@ If `base` is not set, Riloadr will check for the value of the `data-base` attrib
 ```html
     <img class="responsive" data-base="http://assets3.myserver.com/images/" data-xsmall="img_xs.jpg" data-small="img_s.jpg">
 ```
+
+If `base` is set and an image has a `data-base` attribute, the attribute's value overrides the `base` option for that image.
 
 ***
 
@@ -124,28 +126,6 @@ This is the value that you should set as `minWidth` to target the iPhone 3 & 4.
 
 ***
 
-### className (*String*, Optional)    
-A name to identify which images Riloadr must process.  
-This name must be added to the `class` attribute of each `img` tag.  
-
-```js
-    var group1 = new Riloadr({
-        className: 'myClass'
-    });
-```
-
-```html
-    <img class="rounded myClass" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
-```
-
-If `className` is not set, Riloadr will look for images with the class `responsive`.
-
-```html
-    <img class="rounded responsive" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
-```
-
-***
-
 ### defer (*String*, Optional)  
 Tells Riloadr to defer the load of images.  
 Two values available:  
@@ -178,6 +158,81 @@ If `foldDistance` is not set, it defaults to `100`px.
 
 ***
 
+### name (*String*, Optional)    
+A name to identify which images Riloadr must process.  
+This name must be added to the `class` attribute of each `img` tag in a group.
+When you create a Riloadr object, you're creating an image group.  
+You can create different image groups setting a different `name` option on each Riloadr object even if all images share the same `root`. 
+
+```js
+    // We're creating 2 image groups that share the same root (body)
+    // Each Riloadr object (group) will only process its images (identified by 'name')
+    
+    var group1 = new Riloadr({
+        name: 'group1'
+        ...
+    });
+    
+    var group1 = new Riloadr({
+        name: 'group2'
+        ...
+    });
+```
+
+```html
+    <body>
+        <img class="group1 other classes" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
+        <img class="group2 anyother classes" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
+        ...
+    </body>
+```
+
+Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...).  
+
+But, let's go one step further and suppose you want to deliver images from different subdomains. You can create a group for each subdomain even if all images share the same `root`, just by setting a different `name` to each group:  
+
+```js
+    // Main column of your website
+    var root = document.getElementById('main-column');
+    
+    // Both groups share the same 'root' but each group will process 
+    // exclusively the images identified by the 'name' option.
+    // Use the 'base' option to set the subdomain base URL for each group
+    
+    var group1 = new Riloadr({
+        base: 'http://images1.example.com/',
+        name: 'sub1',
+        root: root,
+        breakpoints: { ... }
+    });
+    
+    var group2 = new Riloadr({
+        base: 'http://images2.example.com/',
+        name: 'sub2',
+        root: root,
+        breakpoints: { ... }
+    });
+```
+
+```html
+    <!-- HTML -->
+    <div id="main-column">
+       <img class="sub1" data-mobile="img_mobile1.jpg" data-desktop="img_desktop1.jpg">
+       <img class="sub2" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
+       <img class="sub1" data-mobile="img_mobile3.jpg" data-desktop="img_desktop3.jpg">
+       <img class="sub2" data-mobile="img_mobile4.jpg" data-desktop="img_desktop4.jpg">
+    </div>   
+```  
+
+If `name` is not set, Riloadr will look for images with the class `responsive`.  
+
+```html
+    <img class="responsive" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
+```
+
+***
+
+
 ### onerror (*Function* | Optional)    
 Callback function that will be called if an image fails to load.  
 Inside the callback the reserved keyword `this` refers to the image.
@@ -206,56 +261,6 @@ Inside the callback the reserved keyword `this` refers to the image.
 
 ***
 
-### parentNode (*DOM node* | Optional)  
-A reference to a DOM node/element where Riloadr must look for images to process.  
-This option is the key to create image groups.  
-
-```js
-    var group1 = new Riloadr({
-        parentNode: document.getElementById('main-column')
-    });
-    
-    var group2 = new Riloadr({
-        parentNode: document.getElementById('sidebar')
-    });
-```
-
-Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...). 
-
-But, let's go one step further and suppose you want to deliver images from different subdomains. If you add the `className` option to the mix (and `base` optionally), you can create a group for each subdomain even if all images share the same `parentNode`:  
-
-```js
-    // Both groups share the same 'parentNode' but each group will process 
-    // exclusively the images identified by the 'className' option.
-    var group1 = new Riloadr({
-        parentNode: document.getElementById('main-column'),
-        base: 'http://images1.example.com/',
-        className: 'sub1',
-        breakpoints: { ... }
-    });
-    
-    var group2 = new Riloadr({
-        parentNode: document.getElementById('main-column'),
-        base: 'http://images2.example.com/',
-        className: 'sub2',
-        breakpoints: { ... }
-    });
-```
-
-```html
-    <!-- HTML -->
-    <div id="main-column">
-       <img class="sub1" data-mobile="img_mobile1.jpg" data-desktop="img_desktop1.jpg">
-       <img class="sub2" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
-       <img class="sub1" data-mobile="img_mobile3.jpg" data-desktop="img_desktop3.jpg">
-       <img class="sub2" data-mobile="img_mobile4.jpg" data-desktop="img_desktop4.jpg">
-    </div>   
-```
-
-If `parentNode` is not set, it defaults to the `body` element (1 group).  
-
-***
-
 ### retries (*Integer* | Optional)  
 Number of times Riloadr must try to load an image if it fails to load.
 
@@ -266,6 +271,45 @@ Number of times Riloadr must try to load an image if it fails to load.
 ```
 
 If `retries` is not set, it defaults to `0` (no retries). 
+
+***
+
+### root (*DOM element* | Optional)  
+A reference to a DOM element.  
+Riloadr will look for images to process in the subtree underneath the specified element, excluding the element itself.  
+This option allows you to define a group's scope.  
+Use this option to improve image selection performance.  
+If `root` is not set, it defaults to the `body` element.  
+
+```js
+    // Here we're creating 2 groups (Riloadr objects) and each one 
+    // has a different 'root'. Although these groups share the same 'name' 
+    // (responsive) both are perfectly isolated because their scope is different. 
+    
+    // 'name' not set, defaults to 'responsive'
+    var group1 = new Riloadr({
+        root: document.getElementById('main-column'),
+        breakpoints: { ... }
+    });
+    
+    // 'name' not set, defaults to 'responsive'
+    var group2 = new Riloadr({
+        root: document.getElementById('sidebar'),
+        breakpoints: { ... }
+    });
+```
+
+```html
+    <!-- HTML -->
+    <div id="main-column">
+       <img class="responsive" data-mobile="img_mobile1.jpg" data-desktop="img_desktop1.jpg">
+       <img class="responsive" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
+    </div> 
+    <div id="sidebar">
+        <img class="responsive" data-mobile="img_mobile3.jpg" data-desktop="img_desktop3.jpg">
+        <img class="responsive" data-mobile="img_mobile4.jpg" data-desktop="img_desktop4.jpg">
+    </div>
+```  
 
 ***
 
@@ -280,7 +324,7 @@ This query string will contain the following 3 parameters:
 
 ```js
     var group1 = new Riloadr({
-        className: 'resp-images',
+        name: 'resp-images',
         serverBreakpoints: true
     });
 ```

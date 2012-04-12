@@ -85,7 +85,7 @@
             
             // Name to identify images that must be processed by Riloadr.
             // Specified in the 'class' attribute of 'img' tags.
-          , className = options.className || 'responsive'
+          , className = options.name || 'responsive'
           , classNameRegexp = new RegExp('(^|\\s)'+className+'(\\s|$)')
           
             // Base path
@@ -366,7 +366,7 @@
         
         onDomReady(function(){
             body = doc.body;
-            parentNode = options.parentNode || body;
+            parentNode = options.root || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
             imgSize = getSizeOfImages(breakpoints, viewportWidth); 
             init();
