@@ -42,6 +42,10 @@
       , docElm = doc.documentElement
       , body // Initialized when DOM is ready
       
+      // REGEXPS
+      , QUESTION_MARK_REGEX = /\?/
+      , BREAKPOINT_NAME_REGEX = /{breakpoint-name}/gi
+      
       // Feature support
       , belowfoldSupported = GETBOUNDINGCLIENTRECT in docElm
       , orientationSupported = ORIENTATION in win && ON+ORIENTATIONCHANGE in win
@@ -49,7 +53,7 @@
       
       // Screen info 
       , screenWidth = win.screen.width
-      , devicePixelRatio = parseFloat(win.devicePixelRatio) || 1
+      , devicePixelRatio = win.devicePixelRatio || 1
       , viewportWidth // Initialized when DOM is ready
       
       // Topics/subscriptions map (Pub/Sub)
@@ -64,9 +68,8 @@
       , scrollEventRegistered, resizeEventRegistered, orientationEventRegistered;
       
     
-    // If Modernizr is missing remove "no-js" class from <html> element, if it exists:
-    !('Modernizr' in win) && 
-        (docElm[CLASSNAME] = docElm[CLASSNAME].replace(/(^|\s)no-js(\s|$)/, '$1$2'));
+    // Remove "no-js" class from <html> element, if it exists:
+    docElm[CLASSNAME] = docElm[CLASSNAME].replace(/(^|\s)no-js(\s|$)/, '$1$2');
     
     
     /*
@@ -80,8 +83,10 @@
         // PRIVATE PROPERTIES
         // ------------------
         
-        
         var instance = this
+            
+           // CSS-like breakpoints configuration (required)
+          , breakpoints = options.breakpoints || error('"breakpoints" not defined.')  
             
             // Name to identify images that must be processed by Riloadr.
             // Specified in the 'class' attribute of 'img' tags.
@@ -98,25 +103,15 @@
             // 'belowfold' defer mode?
           , belowfoldEnabled = belowfoldSupported && deferMode === 'belowfold' && !operaMini
             
-            // # of times to retry to load an image if initial loading failed.
-            // Falls back to 0 (no retries)
-          , retries = +options[RETRIES] || 0
-          
             // Setting foldDistance to n causes image to load n pixels before it is visible.
             // Falls back to 100px
           , foldDistance = +options.foldDistance || 100
           
-            // CSS-like breakpoints configuration
-          , breakpoints = options.breakpoints || FALSE
+            // # of times to retry to load an image if initial loading failed.
+            // Falls back to 0 (no retries)
+          , retries = +options[RETRIES] || 0
           
-            // Breakpoints are set on the server. Server chooses the image to deliver.
-            // Riloadr notifies the server about the viewportWidth, screeWidth and 
-            // devicePixelRatio appending a query string to the image src.
-            // This allows developers to create/resize images on the server and 
-            // deliver them on-the-fly.
-          , serverBreakpoints = !breakpoints && options.serverBreakpoints || FALSE
-            
-            // DOM node where Riloadr must look for 'responsive' images.
+            // Id of a DOM node where Riloadr must look for 'responsive' images.
             // Falls back to body if not set.
           , parentNode
             
@@ -126,10 +121,8 @@
             // Static list (array) of images.
           , images;
         
-        
         // PRIVATE METHODS
         // ---------------
-        
         
         function init() {
             if (deferMode === 'belowfold') {
@@ -207,17 +200,16 @@
                     parentNode[QUERYSELECTORALL]('img.'+className) || 
                     parentNode.getElementsByTagName('img')
               , i = 0
-              , l = imageList[LENGTH]
               , current;         
             
             // Create a static list
-            for (; i < l; i++) {
-                current = imageList[i];
+            while (current = imageList[i]) {
                 // If we haven't processed this image yet and it is a responsive image
                 if (current && !current[RILOADED] &&
                     (selectorsApiSupported || current[CLASSNAME].indexOf(className) >= 0)) {
                     images.push(current);
                 }
+                i++;
             }
 
             // Clean up
@@ -228,7 +220,7 @@
         /*
          * Loads an image.
          */
-        function loadImage(img) {   
+        function loadImage(img, idx) {   
             // Flag to avoid reprocessing
             img[RILOADED] = TRUE;
             
@@ -241,6 +233,9 @@
                     
             // Load it    
             img.src = getImageSrc(img);
+            
+            // Reduce the images array for shorter loops
+            images.splice(idx, 1); 
         }
         
         
@@ -273,24 +268,18 @@
         /*
          * Returns the URL of an image
          * If reload is TRUE, a timestamp is added to avoid caching.
-         * If serverBreakpoints is TRUE, screen related parameters are added
          */
         function getImageSrc(img, reload) {
-            return (img.getAttribute('data-base') || base) +
-                (img.getAttribute('data-'+imgSize) || EMPTYSTRING) +
-                ((reload || serverBreakpoints) ? '?' : EMPTYSTRING) +
-                (reload ? 't='+(new Date).getTime() : EMPTYSTRING) + 
-                (serverBreakpoints ? (reload ? '&' : EMPTYSTRING)+'vwidth='+viewportWidth +
-                    '&swidth='+screenWidth+'&dpr='+devicePixelRatio : EMPTYSTRING);         
+            var src = (img.getAttribute('data-base') || base) +
+                (img.getAttribute('data-src') || EMPTYSTRING);
+            
+            if (reload) {
+                src += (QUESTION_MARK_REGEX.test(src) ? '&' : '?') + 
+                    'riloadrts='+(new Date).getTime();
+            }
+
+            return src.replace(BREAKPOINT_NAME_REGEX, imgSize);    
         } 
-        
-        
-        /*
-         * Reduces the images array for shorter loops
-         */
-        function removeImage(idx) {
-            images.splice(idx, 1); 
-        }
         
         
         /*
@@ -305,10 +294,8 @@
             return clientHeight <= img[GETBOUNDINGCLIENTRECT]().top - clientTop - foldDistance;                 
         }
 
-        
         // PUBLIC PRIVILEGED METHODS
         // -------------------------
-        
         
         /*
          * Loads 'responsive' images
@@ -320,31 +307,30 @@
             var args = arguments;
 
             // Schedule it to run after the current call stack has cleared.
-            defer(function(){
+            defer(function(current, i){
                 getImages.apply(NULL, args);
                 
                 // No images to load? finish!
-                if (!images[LENGTH]) return;
-
-                for (var current, i = 0, l = images[LENGTH]; i < l; i++) {
-                    current = images[i];
-                    if (current && !current[RILOADED]) {
-                        if (belowfoldEnabled) { 
-                            if (!isBelowTheFold(current)) {
-                                loadImage(current);
-                                removeImage(i);
+                if (images[LENGTH]) {
+                    i = 0;
+                    while (current = images[i]) {
+                        if (current && !current[RILOADED]) {
+                            if (belowfoldEnabled) { 
+                                if (!isBelowTheFold(current)) {
+                                    loadImage(current, i);
+                                    i--;
+                                }
+                            } else {
+                                loadImage(current, i);
                                 i--;
                             }
-                        } else {
-                            loadImage(current);
-                            removeImage(i);
-                            i--;
                         }
-                    }            
-                }
-
-                // Clean up
-                current = NULL;
+                        i++;
+                    }
+    
+                    // Clean up
+                    current = NULL;
+                }    
             });
         };
         
@@ -359,87 +345,117 @@
             instance.loadImages(TRUE);           
         };
         
-        
         // INITIALIZATION
         // --------------
         
-        
         onDomReady(function(){
             body = doc.body;
-            parentNode = options.root || body;
+            parentNode = options.root && doc.getElementById(options.root) || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
             imgSize = getSizeOfImages(breakpoints, viewportWidth); 
             init();
         });
     };
     
-    
-    // PUBLIC PROPERTIES
-    // -----------------
+    // PUBLIC STATIC PROPERTIES
+    // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.prototype.version = '1.0.0';
+    Riloadr.version = '1.0.0';
     
-
     // HELPER FUNCTIONS
     // ----------------
-    
     
     /*
      * Returns the property name (image size to use) of the 'breakpoints' object.
      * Uses the viewport width to mimic CSS behavior.
      */
     function getSizeOfImages(breakpoints, vWidth) {
-        // Assume one image if breakpoints property is missing
-        if (!breakpoints) return 'src';
-        
         var imgSize = EMPTYSTRING
-          , size, tmpSize, minWidth, maxWidth;  
+          , _vWidth = vWidth
+          , i = 0
+          , breakpoint, name, minWidth, maxWidth, minDpr;  
         
-        for (size in breakpoints) {
-            // Reset
-            tmpSize = NULL;
+        while (breakpoint = breakpoints[i]) {
+            name     = breakpoint['name'];
+            minWidth = breakpoint['minWidth'];
+            maxWidth = breakpoint['maxWidth'];
+            minDpr   = breakpoint['minDevicePixelRatio'];
             
-            minWidth = breakpoints[size]['minWidth'];
-            maxWidth = breakpoints[size]['maxWidth'];
+            // Viewport width found
+            if (vWidth > 0) {
+                if (minWidth && maxWidth  && vWidth >= minWidth && vWidth <= maxWidth || 
+                    minWidth && !maxWidth && vWidth >= minWidth || 
+                    maxWidth && !minWidth && vWidth <= maxWidth) {
+                    if (minDpr) {
+                        if (devicePixelRatio >= minDpr) {
+                            imgSize = name;
+                        }
+                    } else {
+                        imgSize = name;
+                    }
+                }
+            // Viewport width not found so let's find the smallest image size
+            // (mobile first approach).  
+            } else {
+                // Initial value
+                if (_vWidth <= 0) {
+                    _vWidth = minWidth ? minWidth : maxWidth ? maxWidth : _vWidth;
+                    imgSize = name;
+                } else {
+                    if (minWidth < _vWidth) {
+                        _vWidth = minWidth;
+                        imgSize = name;
+                    }
+                    if (maxWidth < _vWidth) {
+                        _vWidth = maxWidth;
+                        imgSize = name;
+                    }
+                }
+            }
+            i++;
+        }    
         
-            if (minWidth && maxWidth  && vWidth >= minWidth && vWidth <= maxWidth || 
-                minWidth && !maxWidth && vWidth >= minWidth || 
-                maxWidth && !minWidth && vWidth <= maxWidth) {
-                tmpSize = size;
-            } 
-            
-            // Update if new size found
-            tmpSize && (imgSize = tmpSize);
-        } 
-        
-        return imgSize;
+        // Cast to string
+        return imgSize + EMPTYSTRING;
     }
     
     
     /*
-     * Returns the viewport width in CSS pixels.
-     * Reference: http://www.quirksmode.org/mobile/tableViewport.html
+     * Returns the layout viewport width in CSS pixels.
+     * To achieve a precise result the following meta must be included at least:
+     * <meta name="viewport" content="width=device-width">
+     * See: 
+     * - http://www.quirksmode.org/mobile/viewports2.html
+     * - http://www.quirksmode.org/mobile/tableViewport.html
+     * - https://github.com/h5bp/mobile-boilerplate/wiki/The-Markup
      */
     function getViewportWidthInCssPixels() {
-        var widths = [docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
-          , i = 0
-          , l = widths[LENGTH];
-          
-        // HDPi screens
-        if (devicePixelRatio > 1) {
-            return Math.ceil(screenWidth / devicePixelRatio);    
-        }
+        var math = Math
+          , widths = [docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
+          , screenWidthFallback = math.ceil(screenWidth / devicePixelRatio)
+          , l = widths[LENGTH]
+          , i = 0 
+          , width;
         
-        // Any other screen
         for (; i < l; i++) {
-            if (!isNaN(widths[i])) {
-                return Math.ceil(widths[i]);
+            // If not a number remove it
+            if (isNaN(widths[i])) {
+                widths.splice(i, 1);
+                i--;
             }
         }
         
-        // Fallback
-        return screenWidth;
+        if (widths[LENGTH]) {
+            width = math.max.apply(math, widths);
+            
+            // Catch cases where the viewport is wider than the screen
+            if (!isNaN(screenWidthFallback)) {
+                width = math.min(screenWidthFallback, width);
+            }
+        }
+        
+        return width || screenWidthFallback || 0;
     } 
     
     
@@ -499,7 +515,15 @@
      */
     function defer(func) {
         var args = Array.prototype.slice.call(arguments, 1);
-        return setTimeout(function(){ return func.apply(NULL, args); }, 1);
+        setTimeout(function(){ return func.apply(NULL, args); }, 1);
+    }
+    
+    
+    /*
+     * Error reporting function
+     */
+    function error(msg) {
+        throw new Error( 'Riloadr: ' + msg );
     }
     
     
@@ -508,18 +532,20 @@
      */
     function publish(topic) {
         var subscribers = topics[topic]
-          , i, l;
+          , i = 0
+          , current;
         
-        if (!subscribers) return;
-
-        for (i = 0, l = subscribers.length; i < l; i++) {
-            try { subscribers[i](); } catch (e) {}
+        if (subscribers) {
+            while (current = subscribers[i]) {
+                current();
+                i++;
+            }
         }
     }
     
     
     function subscribe(topic, fn) {
-        (topics[topic] || (topics[topic] = [])).push(fn);
+        (topics[topic] = topics[topic] || []).push(fn);
     }
 
 
@@ -565,40 +591,36 @@
         
         // Handle when the DOM is ready
         function ready( fn ) {
-            if ( isReady ) {
-                return;
+            if ( !isReady ) {
+                // Make sure body exists, at least, in case IE gets a little overzealous.
+                if ( !doc.body ) {
+                    return defer( ready );
+                }
+                
+                // Remember that the DOM is ready
+                isReady = TRUE;
+        
+                // Execute all callbacks
+                while ( fn = callbacks.shift() ) {
+                    defer( fn );
+                }   
             }
-            
-            // Make sure body exists, at least, in case IE gets a little overzealous.
-            if ( !doc.body ) {
-                return defer( ready );
-            }
-            
-            // Remember that the DOM is ready
-            isReady = TRUE;
-    
-            // Execute all callbacks
-            while ( fn = callbacks.shift() ) {
-                defer( fn );
-            }    
         }
         
         // The DOM ready check for Internet Explorer
         function doScrollCheck() {
-            if ( isReady ) {
-                return;
+            if ( !isReady ) {
+                try {
+                    // If IE is used, use the trick by Diego Perini
+                    // http://javascript.nwbox.com/IEContentLoaded/
+                    docElm.doScroll('left');
+                } catch(e) {
+                    return defer( doScrollCheck );
+                }
+            
+                // and execute any waiting functions
+                ready();
             }
-        
-            try {
-                // If IE is used, use the trick by Diego Perini
-                // http://javascript.nwbox.com/IEContentLoaded/
-                docElm.doScroll('left');
-            } catch(e) {
-                return defer( doScrollCheck );
-            }
-        
-            // and execute any waiting functions
-            ready();
         }
         
         // Attach the listeners:

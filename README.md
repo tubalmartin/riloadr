@@ -80,7 +80,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         /* Riloadr styles for image groups */
         img.responsive, 
         img.main-col-images {
-            visibility: hidden /* To make responsive images not visible until loaded. */
+            visibility: hidden; /* To make responsive images not visible until loaded. */
             min-height: 100px /* To give responsive images some height until loaded. */
         }
         .no-js img.responsive,
