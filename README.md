@@ -62,7 +62,14 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
      Riloadr and Modernizr will remove this 'no-js' class ASAP.
      HTML5 boilerplate uses this technique, so use it!
 -->
-<html class="no-js" lang="en">
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if IEMobile 7 ]> <html class="no-js iem7" lang="en"> <![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)]><!--> 
+<html class="no-js" lang="en"> 
+<!--<![endif]-->
+<head>
 <head>
     <meta charset="utf-8">
 
