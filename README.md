@@ -22,8 +22,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 ## 1. Features
 
 * **No dependencies**: Just Riloadr, HTML and CSS (No server involved if you don't want to, no cookies, no .htaccess, no other Javascript library or framework required).
-* **Ease of use**: 15-30 mins reading the docs and checking some demos and you're good to go!
-* **Freedom**: Riloadr tries to get out of your way. We don't like rigid conventions. 
+* **Ease of use**: 15-30 mins reading the docs and checking some demos and you're good to go! 
 * **Absolute control**: Riloadr will process only the images you tell it to.
 * **One request per image**: Riloadr does not make multiple requests for the same image.
 * **Optimal image size delivery**: Riloadr mimics CSS, it computes the viewport's width in CSS pixels and the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
@@ -43,7 +42,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 
 Riloadr got inspired by the technique used by the [YUI image loader](http://yuilibrary.com/yui/docs/imageloader/).  
 
-The main idea behind this technique is to leave the `src` attribute of `img` tags out of the HTML element altogether.
+The main idea behind this technique is to leave the `src` attribute of `img` tags out of the HTML element altogether and instead use a `data-src` attribute.
 
 This way we avoid making multiple requests to the server for different sizes of an image. Once Riloadr chooses the best size to deliver for the current screen, it adds the `src` attribute and the image is requested.
 
@@ -75,7 +74,13 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
     <!-- Recommended CSS styles --> 
     <style type="text/css">
         img {
-            max-width: 100%; /* To make all images fluid */
+            max-width: 100% /* To make all images fluid */
+        }
+        .lt-ie8 img{
+            -ms-interpolation-mode: bicubic /* IE < 8 does not scale images well */
+        }
+        .lt-ie7 img{
+            width: 100% /* IE < 7 does not support max-width. Use a container. */
         }
         /* Riloadr styles for image groups */
         img.responsive, 
@@ -100,20 +105,21 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
          * Images will be loaded as soon as the DOM is ready.
          */
         var group1 = new Riloadr({
-            breakpoints: {
-                w320: {maxWidth: 320},
-                w640: {minWidth: 321, maxWidth: 640},
-                w1024: {minWidth: 641}
-            }
+            breakpoints: [
+                {name: '320px', maxWidth: 320}, // iPhone 3
+                {name: '640px', maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display
+                {name: '640px', minWidth: 321, maxWidth: 640},
+                {name: '1024px', minWidth: 641}
+            ]
         });
         
         // Image group 2: Full Js configuration. 
         // To know what each setting does read the 'configuration options' section
         var group2 = new Riloadr({
-            root: document.getElementById('main-column'),
+            root: 'main-column', // ID
             name: 'main-col-images',
-            base: "images/",
-            defer: "belowfold",
+            base: 'images/{breakpoint-name}/', // {breakpoint-name} will be replaced by one of your breakpoints names
+            defer: 'belowfold',
             foldDistance: 125,
             onload: function(){
                 // Image x is loaded
@@ -122,42 +128,42 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
                 // Image x failed to load, Riloadr will try to load it one more time
             },
             retries: 1,
-            breakpoints: {
-                small : {maxWidth: 320},
-                medium: {minWidth: 321, maxWidth: 640},
-                large : {minWidth: 641}
-            }
+            breakpoints: [
+                {name: 'small', maxWidth: 320},
+                {name: 'medium', minWidth: 321, maxWidth: 640},
+                {name: 'large', minWidth: 641}
+            ]
         });   
     </script>
 </head>
 <body>
     <header>
-        <!-- You can set the base URL for all image sizes adding a 'data-base' attribute -->
-        <img class="responsive" alt="Tahiti" data-base="images/" data-w320="tahiti_320.jpg" data-w640="tahiti_640.jpg" data-w1024="tahiti_1024.jpg">
+        <!-- You can set the base URL for each image adding a 'data-base' attribute -->
+        <img class="responsive" data-base="images/" data-src="tahiti_{breakpoint-name}.jpg">
         <!-- 
             Use the <noscript> tag to show images to browsers with no Javascript support.
             Deliver to these browsers the smallest image size (Mobile first approach).
         -->
         <noscript>
-            <img alt="Tahiti" src="images/tahiti_320.jpg">
+            <img src="images/tahiti_320px.jpg">
         </noscript>
         
-        <!-- You can set the full src path for each image size (no 'base' option nor 'data-base' attribute) -->
-        <img class="responsive" alt="Cocoa Beach" data-w320="images/cocoa_320.jpg" data-w640="images/cocoa_640.jpg" data-w1024="images/cocoa_1024.jpg">
+        <!-- You can set the full src path for each image (no 'base' option nor 'data-base' attribute) -->
+        <img class="responsive" data-src="images/cocoa_{breakpoint-name}.jpg">
         <noscript>
-            <img alt="Cocoa Beach" src="images/cocoa_320.jpg">
+            <img src="images/cocoa_320px.jpg">
         </noscript>
     </header>
     
     <div id="main-column">
-        <img class="main-col-images" alt="La Jolla" data-small="jolla_320.jpg" data-medium="jolla_640.jpg" data-large="jolla_1024.jpg">
+        <img class="main-col-images" data-src="jolla.jpg">
         <noscript>
-            <img alt="La Jolla" src="images/jolla_320.jpg">
+            <img src="images/small/jolla.jpg">
         </noscript>
         
-        <img class="main-col-images" alt="Morro Rocks" data-small="morro_320.jpg" data-medium="morro_640.jpg" data-large="morro_1024.jpg">
+        <img class="main-col-images" data-src="morro.jpg">
         <noscript>
-            <img alt="Morro Rocks" src="images/morro_320.jpg">
+            <img src="images/small/morro.jpg">
         </noscript>
     </div>
 </body>
@@ -184,22 +190,33 @@ An absolute or relative path to all images in a group.
 If `base` is not set, Riloadr will check for the value of the `data-base` attribute of each `img` tag in a group.
 
 ```html
-    <img class="responsive" data-base="http://assets3.myserver.com/images/" data-xsmall="img_xs.jpg" data-small="img_s.jpg">
+    <img class="responsive" data-base="http://assets3.myserver.com/images/" data-src="img_{breakpoint-name}.jpg">
 ```
 
-If `base` is not set and the `data-base` attribute is missing in an image, Riloadr will use the value of each `data-{breakpoint-name}` attribute for that image.
+If `base` is not set and the `data-base` attribute is missing in an image, Riloadr will use the value of the `data-src` attribute for that image.
 
 ```html
-    <img class="responsive" data-xsmall="http://assets3.myserver.com/images/img_xs.jpg" data-small="http://assets3.myserver.com/images/img_s.jpg">
+    <img class="responsive" data-src="http://assets3.myserver.com/images/img_{breakpoint-name}.jpg">
 ```
 
 If `base` is set and an image has a `data-base` attribute, the attribute's value overrides the `base` option for that image.
 
 ***
 
-### breakpoints (*Object* | Optional)  
-The `breakpoints` object works in a similar way to media queries in CSS.  
-You can define `minWidth` and `maxWidth` properties. Values should be expressed in CSS pixels.  
+### breakpoints (*Array* | Required)  
+The `breakpoints` array works in a similar way to media queries in CSS.  
+You can configure as many breakpoints (or size ranges) as you need, just like with media queries.  
+A breakpoint is a literal object with up to 4 properties:  
+
+* `name` (*String|Integer* | Required): The breakpoint name. You can set the name you like most for any breakpoint.
+* `minWidth` (*Integer* | Optional): Equivalent to `min-width` in CSS media queries. Value should be expressed in CSS pixels.
+* `maxWidth` (*Integer* | Optional): Equivalent to `max-width` in CSS media queries. Value should be expressed in CSS pixels.
+* `minDevicePixelRatio` (*Float* | Optional): Equivalent to `min-device-pixel-ratio` in CSS media queries (useful for delivering high resolution images). If two breakpoints only differ by this property, the breakpoint containing this property should be placed in the last place. 
+
+**The `{breakpoint-name}` variable**
+
+The variable `{breakpoint-name}` can be used multiple times in `base`, `data-base` and `data-src` values.
+Riloadr will replace `{breakpoint-name}` by the `name` property of one of the breakpoints you've set.
 
 Let's see some examples:  
 Example 1:  
@@ -207,53 +224,84 @@ Example 1:
 ```js
     var group1 = new Riloadr({
         base: '../images/',
-        breakpoints: {
-            xsmall: {maxWidth: 320},
-            small : {minWidth: 321, maxWidth: 480},
-            medium: {minWidth: 481, maxWidth: 768},
-            large : {minWidth: 769, maxWidth: 1024},
-            xlarge: {minWidth: 1025}
-        }
+        breakpoints: [
+            {name: 'xsmall', maxWidth: 320}, // Applied if viewport is not wider than 320 pixels
+            {name: 'small',  minWidth: 321, maxWidth: 480},
+            {name: 'medium', minWidth: 481, maxWidth: 768},
+            {name: 'large',  minWidth: 769, maxWidth: 1024},
+            {name: 'xlarge', minWidth: 1025} // Applied if viewport is wider than 1025 pixels
+        ]
     });
 ```
 
 ```html
-    <!-- HTML -->
-    <img class="responsive" data-xsmall="wow_xs.jpg" data-small="wow_s.jpg" data-medium="wow_m.jpg" data-large="wow_l.jpg" data-xlarge="wow_xl.jpg">
+    <!--  
+        We add a 'data-src' attribute and the {breakpoint-name} variable where we need it.  
+        In this case, image names have a size suffix i.e. wow_small.jpg, wow_xlarge.jpg etc...  
+        so we place the {breakpoint-name} variable where the breakpoint name should be.  
+    -->  
+    <img class="responsive" data-src="wow_{breakpoint-name}.jpg">
 ```
 
 Example 2:  
 
 ```js
     var group2 = new Riloadr({
-        base: 'http://myserver.com/photos/',
-        breakpoints: {
-            mobile : {maxWidth: 320},
-            tablet : {minWidth: 321, maxWidth: 768},
-            desktop: {minWidth: 769}
-        }
+        base: 'http://myserver.com/photos/{breakpoint-name}/',
+        breakpoints: [
+            {name: 'mobile',  maxWidth: 320},
+            {name: 'tablet',  minWidth: 321, maxWidth: 768},
+            {name: 'desktop', minWidth: 769}
+        ]
     });
 ```
 
 ```html
-    <!-- HTML -->
-    <img class="responsive" data-mobile="mobi/super.jpg" data-tablet="tablet/super.jpg" data-desktop="desktop/super.jpg">
+    <!-- 
+        In this case the {breakpoint-name} variable is used in the 'base' option.
+        The final URL for this image will be one of these:
+        - http://myserver.com/photos/mobile/super.jpg
+        - http://myserver.com/photos/tablet/super.jpg
+        - http://myserver.com/photos/desktop/super.jpg
+    -->
+    <img class="responsive" data-src="super.jpg">
 ```
-  
-Configure as many breakpoints (or size ranges) as you need.  
-Choose the breakpoint names you like most.  
-Each breakpoint name needs to have its counterpart HTML `data-{breakpoint-name}` attribute on each image of a group.  
+
+Example 3:  
+
+```js
+    // Breakpoint names can be used more than once if the breakpoint properties 
+    // are different but they apply to the same image size.
+    var group3 = new Riloadr({
+        base: 'http://img.{breakpoint-name}.myserver.com/',
+        breakpoints: [
+            {name: 'low',  maxWidth: 320}, // iPhone 3 
+            {name: 'high', maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display (High resolution image)
+            {name: 'high', minWidth: 321} // Any bigger screen
+        ]
+    });
+```
+
+```html
+    <!-- 
+        In this case the {breakpoint-name} variable is used in the 'base' option.
+        The final URL for this image will be one of these:
+        - http://img.low.myserver.com/Hollywood.jpg
+        - http://img.high.myserver.com/Hollywood.jpg
+    -->
+    <img class="responsive" data-src="Hollywood.jpg">
+```
 
 **Important!**:   
 When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image URL) to load the image.  
-Remember, Riloadr *mimics CSS* and as such, it works with CSS pixels not with device pixels. So when you define your breakpoints use this formula to calculate the minWidth and maxWidth values:  
+Remember, Riloadr *mimics CSS* and as such, it works with CSS pixels not with device pixels. So when you define your breakpoints use this formula to calculate screen width:  
 
-`device screen width / device pixel ratio = width in CSS pixels`  
+`device screen width / device pixel ratio = screen width in CSS pixels`  
 
 An example:  
 You need to target the iPhone 4 which in portrait mode has a screen width (device pixels) of 640px.
 The iPhone 4 has a device pixel ratio of 2 (2 device pixels equal 1 CSS pixel) so if we apply the formula above we get a width of 320 CSS pixels.  
-This is the value that you should set as `minWidth` to target the iPhone 3 & 4.
+This is the value that you should set as `minWidth` to target the iPhone 3 & 4 (just like in CSS).
 
 ***
 
@@ -312,8 +360,8 @@ You can create different image groups setting a different `name` option on each 
 
 ```html
     <body>
-        <img class="group1 other classes" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
-        <img class="group2 anyother classes" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
+        <img class="group1 other classes" data-src="img_{breakpoint-name}.jpg">
+        <img class="group2 anyother classes" data-src="img_{breakpoint-name}.jpg">
         ...
     </body>
 ```
@@ -323,42 +371,42 @@ Image groups are awesome because you can set different options for different set
 But, let's go one step further and suppose you want to deliver images from different subdomains. You can create a group for each subdomain even if all images share the same `root`, just by setting a different `name` to each group:  
 
 ```js
-    // Main column of your website
-    var root = document.getElementById('main-column');
+    // Main column ID of your website
+    var rootId = 'main-column';
     
     // Both groups share the same 'root' but each group will process 
     // exclusively the images identified by the 'name' option.
     // Use the 'base' option to set the subdomain base URL for each group
     
     var group1 = new Riloadr({
-        base: 'http://images1.example.com/',
+        base: 'http://images1.example.com/{breakpoint-name}/',
         name: 'sub1',
-        root: root,
-        breakpoints: { ... }
+        root: rootId,
+        breakpoints: [ ... ]
     });
     
     var group2 = new Riloadr({
-        base: 'http://images2.example.com/',
+        base: 'http://images2.example.com/{breakpoint-name}/',
         name: 'sub2',
-        root: root,
-        breakpoints: { ... }
+        root: rootId,
+        breakpoints: [ ... ]
     });
 ```
 
 ```html
     <!-- HTML -->
     <div id="main-column">
-       <img class="sub1" data-mobile="img_mobile1.jpg" data-desktop="img_desktop1.jpg">
-       <img class="sub2" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
-       <img class="sub1" data-mobile="img_mobile3.jpg" data-desktop="img_desktop3.jpg">
-       <img class="sub2" data-mobile="img_mobile4.jpg" data-desktop="img_desktop4.jpg">
+       <img class="sub1" data-src="img1.jpg">
+       <img class="sub2" data-src="img2.jpg">
+       <img class="sub1" data-src="img3.jpg">
+       <img class="sub2" data-src="img4.jpg">
     </div>   
 ```  
 
 If `name` is not set, Riloadr will look for images with the class `responsive`.  
 
 ```html
-    <img class="responsive" data-mobile="img_mobile.jpg" data-desktop="img_desktop.jpg">
+    <img class="responsive" data-src="img1.jpg">
 ```
 
 ***
@@ -406,12 +454,12 @@ If `retries` is not set, it defaults to `0` (no retries).
 
 ***
 
-### root (*DOM element* | Optional)  
-A reference to a DOM element.  
+### root (*String* | Optional)  
+The `id` attribute value of a DOM element (Riloadr uses internally `document.getElementById(root)` to select the element).  
 Riloadr will look for images to process in the subtree underneath the specified element, excluding the element itself.  
 This option allows you to define a group's scope.  
 Use this option to improve image selection performance.  
-If `root` is not set, it defaults to the `body` element.  
+If `root` is not set or can't be found, it falls back to the `body` element.  
 
 ```js
     // Here we're creating 2 groups (Riloadr objects) and each one 
@@ -420,65 +468,32 @@ If `root` is not set, it defaults to the `body` element.
     
     // 'name' not set, defaults to 'responsive'
     var group1 = new Riloadr({
-        root: document.getElementById('main-column'),
-        breakpoints: { ... }
+        base: 'http://{breakpoint-name}.example.com/',
+        root: 'main-column',
+        breakpoints: [ ... ]
     });
     
     // 'name' not set, defaults to 'responsive'
     var group2 = new Riloadr({
-        root: document.getElementById('sidebar'),
-        breakpoints: { ... }
+        base: 'http://{breakpoint-name}.example.com/',
+        root: 'sidebar',
+        breakpoints: [ ... ]
     });
 ```
 
 ```html
     <!-- HTML -->
     <div id="main-column">
-       <img class="responsive" data-mobile="img_mobile1.jpg" data-desktop="img_desktop1.jpg">
-       <img class="responsive" data-mobile="img_mobile2.jpg" data-desktop="img_desktop2.jpg">
+       <img class="responsive" data-src="img1.jpg">
+       <img class="responsive" data-src="img2.jpg">
     </div> 
     <div id="sidebar">
-        <img class="responsive" data-mobile="img_mobile3.jpg" data-desktop="img_desktop3.jpg">
-        <img class="responsive" data-mobile="img_mobile4.jpg" data-desktop="img_desktop4.jpg">
+        <img class="responsive" data-src="img3.jpg">
+        <img class="responsive" data-src="img4.jpg">
     </div>
 ```  
 
 ***
-
-### serverBreakpoints (*Boolean* | Optional)   
-If you prefer to create or resize images on-demand in the server set `serverBreakpoints` to `true` and omit the `breakpoints` option.  
-If set to `true`, you must add the data attribute `data-src` on each `img` tag of a group because Riloadr will append a query string (GET request) to the value (URL) of the `data-src` attribute.    
-This query string will contain the following 3 parameters:
-
-* `vwidth`: The viewport width in CSS pixels.
-* `swidth`: The screen width in device pixels.
-* `dpr`: The device pixel ratio.
-
-```js
-    var group1 = new Riloadr({
-        name: 'resp-images',
-        serverBreakpoints: true
-    });
-```
-
-```html
-    <!-- HTML -->
-    <img class="resp-images" data-src="http://www.domain.com/images/process.php">
-```
-
-Example of the GET request that will be sent to the server:
-
-```
-http://www.domain.com/images/process.php?vwidth=1229&swidth=1920&dpr=1
-```
-
-Riloadr does not provide a library/script to create/resize images on the server but you can find lots of them googling a bit :)  
-
-**Warning!**:  
-This method is not cache/proxy friendly because we're using query strings and 3 parameters that will change from one browser/device to another.  
-Even if we didn't use query strings, it wouldn't be cache friendly either because the likelihood that URLs change from one device to another is really high and you can end up easily with 100 different URLs for the same image and size instead of 1 per image/size combination.  
-
-`serverBreakpoints` defaults to `false`.
 
 <a name="methods"></a>
 
@@ -493,7 +508,7 @@ Note this method will load exclusively images belonging to the group (Riloadr ob
     // Create an image group (root = body)
     var group1 = new Riloadr({
         name: 'resp-images',
-        breakpoints: {...}
+        breakpoints: [ ... ]
     });
     
     // Code that adds images to the group's root element (body)
@@ -541,8 +556,6 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 ## 5. To-Dos & Ideas
 
 * jQuery version (to reduce code size) -> Will do!
-* Give option to set minDevicePixelRatio in `breakpoints` to allow delivery of High Resolution images? -> Probably
-* Create plugin that adds the option `serverCookie` (if `serverBreakpoints` is true) to set a cookie (instead of query string) in order to send the screen/viewport calculated values to the server? -> Maybe!
 
 <a name="contribute"></a>
 

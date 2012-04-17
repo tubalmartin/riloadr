@@ -367,7 +367,7 @@
     // ----------------
     
     /*
-     * Returns the property name (image size to use) of the 'breakpoints' object.
+     * Returns the breakpoint name (image size to use).
      * Uses the viewport width to mimic CSS behavior.
      */
     function getSizeOfImages(breakpoints, vWidth) {
@@ -573,6 +573,7 @@
      * https://github.com/tubalmartin/ondomready
      * Notes:
      * - Slightly adapted for Riloadr
+     * - Compatible with async script loading
      */
     onDomReady = (function(){
         var DOMContentLoaded = 'DOMContentLoaded',
