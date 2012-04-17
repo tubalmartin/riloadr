@@ -215,7 +215,7 @@ A breakpoint is a literal object with up to 4 properties:
 
 **The `{breakpoint-name}` variable**
 
-The variable `{breakpoint-name}` can be used multiple times in `base`, `data-base` and `data-src` values.
+The variable `{breakpoint-name}` can be used multiple times in `base`, `data-base` and `data-src` values.  
 Riloadr will replace `{breakpoint-name}` by the `name` property of one of the breakpoints you've set.
 
 Let's see some examples:  
@@ -434,7 +434,7 @@ Inside the callback the reserved keyword `this` refers to the image.
 ```js
     var group1 = new Riloadr({
         onload: function() {
-            console.log('Image loaded! Wheee!');
+            console.log('Image loaded!');
         }
     });
 ```
