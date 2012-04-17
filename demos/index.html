@@ -52,57 +52,80 @@
     
     <!-- Once Riloadr is loaded, set up your image groups -->
     <script type="text/javascript">
-        !function(){
-            // Riloadr version
-            console.log('Riloadr version: ' + Riloadr.version);
-            
-            // Image groups
-            var group1 = new Riloadr({
-                name: 'group1',
-                base: 'images/',
-                breakpoints: [
-                    {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
-                    {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
-                    {name: 640, minWidth: 321} /* Viewports wider than 320px */
-                ]
-            });
- 
-            var group2 = new Riloadr({
-                root: 'group2', /* Id of DOM node */
-                base: 'images/{breakpoint-name}/',
-                defer: 'belowfold',
-                foldDistance: 120,
-                onload: function(){
-                    console.log("'" + this.alt + "' image loaded!");
-                },
-                onerror: function(){
-                    console.log("Failed loading image '" + this.alt + "'!");
-                    console.log("Riloadr will try to reload this image one more time.");
-                },
-                retries: 1,
-                breakpoints: [
-                    {name: 240, maxWidth: 240},
-                    {name: 320, minWidth: 241, maxWidth: 320},
-                    {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
-                    {name: 640, minWidth: 321, maxWidth: 640},
-                    {name: 1024, minWidth: 641}
-                ]
-            });
-            
-            var group3 = new Riloadr({
-                name: 'mygroup3',
-                base: 'images/{breakpoint-name}/',
-                defer: 'load',
-                retries: 1,
-                breakpoints: [
-                    {name: 240, maxWidth: 240},
-                    {name: 320, minWidth: 241, maxWidth: 320},
-                    {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
-                    {name: 640, minWidth: 321, maxWidth: 640},
-                    {name: 1024, minWidth: 641}
-                ]
-            });
-        }();
+        // Riloadr version
+        console.log('Riloadr version: ' + Riloadr.version);
+        
+        // Image groups
+        var group1 = new Riloadr({
+            name: 'group1',
+            base: 'images/',
+            breakpoints: [
+                {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
+                {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321} /* Viewports wider than 320px */
+            ]
+        });
+
+        var group2 = new Riloadr({
+            root: 'group2', /* Id of DOM node */
+            base: 'images/{breakpoint-name}/',
+            defer: 'belowfold',
+            foldDistance: 120,
+            onload: function(){
+                console.log("'" + this.alt + "' image loaded!");
+            },
+            onerror: function(){
+                console.log("Failed loading image '" + this.alt + "'!");
+                console.log("Riloadr will try to reload this image one more time.");
+            },
+            retries: 1,
+            breakpoints: [
+                {name: 240, maxWidth: 240},
+                {name: 320, minWidth: 241, maxWidth: 320},
+                {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321, maxWidth: 640},
+                {name: 1024, minWidth: 641}
+            ]
+        });
+        
+        var group3 = new Riloadr({
+            name: 'mygroup3',
+            base: 'images/{breakpoint-name}/',
+            defer: 'load',
+            retries: 1,
+            breakpoints: [
+                {name: 240, maxWidth: 240},
+                {name: 320, minWidth: 241, maxWidth: 320},
+                {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321, maxWidth: 640},
+                {name: 1024, minWidth: 641}
+            ]
+        });
+        
+        var group4 = new Riloadr({
+            name: 'mygroup4',
+            base: 'images/{breakpoint-name}/',
+            breakpoints: [
+                {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
+                {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321} /* Viewports wider than 320px */
+            ]
+        });
+        
+        function addImages(elm) {
+            // Hide the button
+            elm.style.display = 'none';
+            // Add images to the document with Javascript
+            document.getElementById('group4').innerHTML = 
+                '<p>' +
+                    '<img class="mygroup4" data-src="cocoa.jpg">' + 
+                '</p>' + 
+                '<p>' + 
+                    '<img class="mygroup4" data-src="morro.jpg">' + 
+                '</p>';
+                
+            group4.riload();    
+        }
     </script>
 </head>
 <body>
@@ -185,6 +208,11 @@
             <img alt="Waimea from beach" src="images/waimea_beach/glup_240.jpg">
         </noscript>
     </p>
-
+    
+    
+    
+    <h2>Group 4</h2>
+    <div id="group4"></div>
+    <button type=button onclick="addImages(this)">Add images to group 4</button>
 </body>
 </html>
