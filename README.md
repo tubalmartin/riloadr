@@ -70,7 +70,6 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
 <html class="no-js" lang="en"> 
 <!--<![endif]-->
 <head>
-<head>
     <meta charset="utf-8">
 
     <!-- Mobile viewport optimization: Required!! -->
