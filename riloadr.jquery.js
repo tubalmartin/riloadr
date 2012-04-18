@@ -4,7 +4,7 @@
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
         // Register as an AMD module.
-        define(definition);
+        define(['jquery'], definition);
     } else {
         // Browser globals
         window.Riloadr = definition();
@@ -21,35 +21,32 @@
       , ERROR = 'error'
       , EMPTYSTRING = ''
       , LENGTH = 'length'
+      , JQUERY = 'jQuery'
       , SCROLL = 'scroll'
       , RESIZE = 'resize'
       , ONLOAD = ON+LOAD
       , ONERROR = ON+ERROR
       , RETRIES = 'retries'
-      , COMPLETE = 'complete'
       , RILOADED = 'riloaded'
       , CLASSNAME = 'className'
-      , READYSTATE = 'readyState'
       , ORIENTATION = 'orientation'
       , EVENTLISTENER = 'EventListener'
-      , READYSTATECHANGE = 'readystatechange'
-      , QUERYSELECTORALL = 'querySelectorAll'
       , ORIENTATIONCHANGE = ORIENTATION+'change'
-      , GETBOUNDINGCLIENTRECT = 'getBoundingClientRect'
       
       , win = window
+      , $win // jQuery wrapped window
       , doc = win.document
       , docElm = doc.documentElement
       , body // Initialized when DOM is ready
+      
+      , $ = JQUERY in win && win[JQUERY] || error(JQUERY+' not found.')
       
       // REGEXPS
       , QUESTION_MARK_REGEX = /\?/
       , BREAKPOINT_NAME_REGEX = /{breakpoint-name}/gi
       
       // Feature support
-      , belowfoldSupported = GETBOUNDINGCLIENTRECT in docElm
       , orientationSupported = ORIENTATION in win && ON+ORIENTATIONCHANGE in win
-      , selectorsApiSupported = QUERYSELECTORALL in doc
       
       // Screen info 
       , screenWidth = win.screen.width
@@ -63,7 +60,7 @@
       , operaMini = Object.prototype.toString.call(win.operamini) === '[object OperaMini]'
       
       // Other uninitialized vars
-      , addEvent, removeEvent, onDomReady
+      , addEvent, removeEvent
       , lastOrientation
       , scrollEventRegistered, resizeEventRegistered, orientationEventRegistered;
       
@@ -101,7 +98,7 @@
           , deferMode = (options.defer + EMPTYSTRING).toLowerCase() || FALSE
             
             // 'belowfold' defer mode?
-          , belowfoldEnabled = belowfoldSupported && deferMode === 'belowfold' && !operaMini
+          , belowfoldEnabled = deferMode === 'belowfold' && !operaMini
             
             // Setting foldDistance to n causes image to load n pixels before it is visible.
             // Falls back to 100px
@@ -195,25 +192,12 @@
             // no new images have been added to the DOM, do nothing.
             if (!images || update === TRUE) {
                 images = images || [];
-            
-                var imageList = selectorsApiSupported && 
-                        parentNode[QUERYSELECTORALL]('img.'+className) || 
-                        parentNode.getElementsByTagName('img')
-                  , i = 0
-                  , current;         
                 
                 // Create a static list
-                while (current = imageList[i]) {
+                $('img.'+className, parentNode).each(function(idx, elm) {
                     // If we haven't processed this image yet and it is a responsive image
-                    if (current && !current[RILOADED] &&
-                        (selectorsApiSupported || current[CLASSNAME].indexOf(className) >= 0)) {
-                        images.push(current);
-                    }
-                    i++;
-                }
-    
-                // Clean up
-                imageList = current = NULL;
+                    elm && !elm[RILOADED] && images.push(elm);
+                });
             }
         }
         
@@ -287,12 +271,7 @@
          * Tells if an image is visible to the user or not. 
          */
         function isBelowTheFold(img) {
-            var CLIENTHEIGHT = 'clientHeight', CLIENTTOP = 'clientTop'
-              , clientTop = docElm[CLIENTTOP] || body[CLIENTTOP] || 0
-              , clientHeight = doc.compatMode === 'CSS1Compat' && docElm[CLIENTHEIGHT] || 
-                    body && body[CLIENTHEIGHT] || docElm[CLIENTHEIGHT];
-        
-            return clientHeight <= img[GETBOUNDINGCLIENTRECT]().top - clientTop - foldDistance;                 
+            return $win.height() + $win.scrollTop() <= $(img).offset().top - foldDistance;                 
         }
 
         // PUBLIC PRIVILEGED METHODS
@@ -350,8 +329,9 @@
         // --------------
         
         onDomReady(function(){
+            $win = $(win);
             body = doc.body;
-            parentNode = options.root && doc.getElementById(options.root) || body;
+            parentNode = options.root && $('#'+options.root) || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
             imgSize = getSizeOfImages(breakpoints, viewportWidth); 
             init();
@@ -552,6 +532,9 @@
 
     /*
      * Simple event attachment/detachment
+     * Since we attach listeners to the window scroll, resize and 
+     * orientationchange events, native functions are 6x faster than jQuery's
+     * event handling system.
      */
     !function() {
         var w3c = 'add'+EVENTLISTENER in doc
@@ -570,110 +553,11 @@
     
     
     /*
-     * onDomReady.js 1.0 (c) 2012 Tubal Martin - MIT license
-     * https://github.com/tubalmartin/ondomready
-     * Notes:
-     * - Slightly adapted for Riloadr
-     * - Compatible with async script loading
+     * Wrapper to DOMContentLoaded event
      */
-    onDomReady = (function(){
-        var DOMContentLoaded = 'DOMContentLoaded',
-        addEventListener = 'add'+EVENTLISTENER,
-        attachEvent = 'attachEvent',
-        toplevel = FALSE,
-        
-        // Callbacks pending execution until DOM is ready
-        callbacks = [],
-        
-        // Is the DOM ready to be used? Set to true once it occurs.
-        isReady = FALSE,
-        
-        // The document ready event handler
-        DOMContentLoadedHandler;
-        
-        // Handle when the DOM is ready
-        function ready( fn ) {
-            if ( !isReady ) {
-                // Make sure body exists, at least, in case IE gets a little overzealous.
-                if ( !doc.body ) {
-                    return defer( ready );
-                }
-                
-                // Remember that the DOM is ready
-                isReady = TRUE;
-        
-                // Execute all callbacks
-                while ( fn = callbacks.shift() ) {
-                    defer( fn );
-                }   
-            }
-        }
-        
-        // The DOM ready check for Internet Explorer
-        function doScrollCheck() {
-            if ( !isReady ) {
-                try {
-                    // If IE is used, use the trick by Diego Perini
-                    // http://javascript.nwbox.com/IEContentLoaded/
-                    docElm.doScroll('left');
-                } catch(e) {
-                    return defer( doScrollCheck );
-                }
-            
-                // and execute any waiting functions
-                ready();
-            }
-        }
-        
-        // Attach the listeners:
-        // Catch cases where onDomReady is called after the
-        // browser event has already occurred.
-        if ( doc[READYSTATE] === COMPLETE ) {
-            ready();
-        } else {
-            // W3C event model
-            if ( doc[addEventListener] ) {
-                DOMContentLoadedHandler = function() {
-                    removeEvent( doc, DOMContentLoaded, DOMContentLoadedHandler );
-                    ready();
-                };
-                
-                // Use the handy event callback
-                addEvent( doc, DOMContentLoaded, DOMContentLoadedHandler );
-        
-            // IE event model
-            } else if ( doc[attachEvent] ) {
-                DOMContentLoadedHandler = function() {
-                    if ( doc[READYSTATE] === COMPLETE ) {
-                        removeEvent( doc, READYSTATECHANGE, DOMContentLoadedHandler );
-                        ready();
-                    }
-                };
-                
-                // ensure firing before onload,
-                // maybe late but safe also for iframes
-                addEvent( doc, READYSTATECHANGE, DOMContentLoadedHandler );
-
-                // If IE and not a frame
-                // continually check to see if the document is ready
-                try {
-                    toplevel = win.frameElement == NULL;
-                } catch(e) {}
-        
-                if ( docElm.doScroll && toplevel ) {
-                    doScrollCheck();
-                }
-            }
-            
-            // A fallback to window.onload, that will always work
-            addEvent( win, LOAD, ready );
-        } 
-        
-        return function( fn ) { 
-            // If DOM is ready, execute the function (async), otherwise wait
-            isReady ? defer( fn ) : callbacks.push( fn );
-        };
-    }());
+    function onDomReady(fn) {
+        $(fn);        
+    }
     
     
     /*
@@ -684,7 +568,7 @@
     function onWindowReady(fn) {
         // Catch cases where onWindowReady is called after 
         // the browser event has already occurred.
-        if (doc[READYSTATE] === COMPLETE) {
+        if (doc['readyState'] === 'complete') {
             fn();
         } else {
             var _fn = function() {

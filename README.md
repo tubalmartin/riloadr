@@ -10,9 +10,9 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 2.  [How to use](#howto)
     1.  [Configuration options](#options)
     2.  [Methods](#methods)
-3.  [Demos](#demos)
-4.  [Testing](#testing)
-5.  [To-Dos & Ideas](#todos)
+3.  [jQuery version](#jquery)    
+4.  [Demos](#demos)
+5.  [Testing](#testing)
 6.  [Contribute](#contribute)
 7.  [Bug tracker](#issues)
 8.  [License](#license)
@@ -32,7 +32,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
-* **Lightweight**: 4kb minified
+* **Lightweight**: 4kb minified (3kb jQuery version minified)
 * **AMD compatible**
 * **MIT License**
 
@@ -420,7 +420,7 @@ If `name` is not set, Riloadr will look for images with the class `responsive`.
 
 ### onerror (*Function* | Optional)    
 Callback function that will be called if an image fails to load.  
-Inside the callback the reserved keyword `this` refers to the image.
+Inside the callback the reserved keyword `this` refers to the image.  
 If `retries` is set to a number greater than `0`, Riloadr will automatically try to load that image a maximum of `retries` times. 
 
 ```js
@@ -524,20 +524,29 @@ Note this method will load exclusively images belonging to the group (Riloadr ob
     group1.riload();
 ```
 
+<a name="jquery"></a>
+
+## 3. jQuery version
+
+If you already use jQuery in a project, save some bytes and use the jQuery version of Riloadr. Same performance, same behavior!  
+jQuery 1.3.2+ recommended!  
 
 <a name="demos"></a>
 
-## 3. Demos
+## 4. Demos
 
 Demos are located [here](https://github.com/tubalmartin/riloadr/tree/master/demos).  
 Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.  
 To run the demos, download the repo, extract the files (optionally upload them to an online server) and open any `demo/*.html` file in your browser.  
 
-**Online demos you ask?** Check'em out [here](http://www.margenn.com/tubal/riloadr/demos/)!  
+**Online demos you ask?**  
+
+* [Framework-independent version](http://www.margenn.com/tubal/riloadr/demos/)
+* [jQuery version](http://www.margenn.com/tubal/riloadr/demos/index.jquery.html) 
 
 <a name="testing"></a>
 
-## 4. Testing
+## 5. Testing
 
 Riloadr's goal has always been to work cross-browser, both desktop and mobile, and not require any javascript libraries, frameworks or any other dependencies except HTML and CSS. If you come across any problems please help us by submitting an issue and we'll work to improve it. Below are the primary browsers Riloadr has been tested against.
 
@@ -558,12 +567,6 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 * Google Chrome (Mac and Win)
 * Safari (Mac and Win)
 * Opera (Mac and Win)
-
-<a name="todos"></a>
-
-## 5. To-Dos & Ideas
-
-* jQuery version (to reduce code size) -> Will do!
 
 <a name="contribute"></a>
 

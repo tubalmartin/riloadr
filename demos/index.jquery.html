@@ -1,0 +1,221 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if IEMobile 7 ]> <html class="no-js iem7" lang="en"> <![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)]><!--> 
+<html class="no-js" lang="en"> 
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    
+    <title>Riloadr: A responsive images loader</title>
+    
+    <!-- Mobile viewport optimization - Required!!-->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="0">
+    <meta name="viewport" content="width=device-width">
+    
+    <!-- Recommended CSS styles --> 
+    <style type="text/css">
+        img {
+            max-width: 100% /* To make all images fluid */
+        }
+        .lt-ie8 img{
+            -ms-interpolation-mode: bicubic /* IE < 8 does not scale images well */
+        }
+        .lt-ie7 img{
+            width: 100% /* IE < 7 does not support max-width. Use a container. */
+        }
+        /* Riloadr styles for image groups */
+        img.responsive,
+        img.group1,
+        img.mygroup3 {
+            visibility: hidden; /* To make responsive images not visible until loaded. */
+            min-height: 100px /* To give responsive images some height until loaded. */
+        }
+        .no-js img.responsive,
+        .no-js img.group1,
+        .no-js img.mygroup3 {
+            display: none /* To remove responsive images if Javascript is disabled */
+        }
+    </style>
+    
+    <!-- Make it safe to use console.log always -->
+    <script type="text/javascript">
+        (function(a){function b(){}for(var c="assert,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profileEnd,time,timeEnd,trace,warn".split(","),d;!!(d=c.pop());){a[d]=a[d]||b;}})
+        (function(){try{console.log();return window.console;}catch(a){return (window.console={});}}());
+    </script>
+    
+    <!-- Include jQuery -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    
+    <!-- Include Riloadr (preferrably in the <head>) --> 
+    <script type="text/javascript" src="../riloadr.jquery.js"></script>
+    
+    <!-- Once Riloadr is loaded, set up your image groups -->
+    <script type="text/javascript">
+        // Riloadr version
+        console.log('Riloadr version: ' + Riloadr.version);
+        
+        // Image groups
+        var group1 = new Riloadr({
+            name: 'group1',
+            base: 'images/',
+            breakpoints: [
+                {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
+                {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321} /* Viewports wider than 320px */
+            ]
+        });
+
+        var group2 = new Riloadr({
+            root: 'group2', /* Id of DOM node */
+            base: 'images/{breakpoint-name}/',
+            defer: 'belowfold',
+            foldDistance: 120,
+            onload: function(){
+                console.log("'" + this.alt + "' image loaded!");
+            },
+            onerror: function(){
+                console.log("Failed loading image '" + this.alt + "'!");
+                console.log("Riloadr will try to reload this image one more time.");
+            },
+            retries: 1,
+            breakpoints: [
+                {name: 240, maxWidth: 240},
+                {name: 320, minWidth: 241, maxWidth: 320},
+                {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321, maxWidth: 640},
+                {name: 1024, minWidth: 641}
+            ]
+        });
+        
+        var group3 = new Riloadr({
+            name: 'mygroup3',
+            base: 'images/{breakpoint-name}/',
+            defer: 'load',
+            retries: 1,
+            breakpoints: [
+                {name: 240, maxWidth: 240},
+                {name: 320, minWidth: 241, maxWidth: 320},
+                {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321, maxWidth: 640},
+                {name: 1024, minWidth: 641}
+            ]
+        });
+        
+        var group4 = new Riloadr({
+            name: 'mygroup4',
+            base: 'images/{breakpoint-name}/',
+            breakpoints: [
+                {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
+                {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+                {name: 640, minWidth: 321} /* Viewports wider than 320px */
+            ]
+        });
+        
+        function addImages(elm) {
+            // Hide the button
+            elm.style.display = 'none';
+            // Add images to the document with Javascript
+            document.getElementById('group4').innerHTML = 
+                '<p>' +
+                    '<img class="mygroup4" data-src="cocoa.jpg">' + 
+                '</p>' + 
+                '<p>' + 
+                    '<img class="mygroup4" data-src="morro.jpg">' + 
+                '</p>';
+                
+            group4.riload();    
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Riloadr Demos</h1>
+    <p>Open this page in different browsers/devices to watch Riloadr in action!!</p>
+    <p>Inspect the source code to learn how to use Riloadr or <a href="https://github.com/tubalmartin/riloadr">read the docs at Github</a>.</p>
+    
+    
+    
+    <h2>Group 1</h2>
+    <p>
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+    </p>
+    <p>
+        <img class="group1" alt="Waimea" data-src="waimea_{breakpoint-name}.jpg">
+        <noscript>
+            <img alt="Waimea" src="images/waimea_320.jpg">
+        </noscript>
+    </p>
+    <p>
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+    </p>
+    <p>
+        <img class="group1" alt="Txanpa at Waimea" data-src="txanpa_{breakpoint-name}.jpg">
+        <noscript>
+            <img alt="Txanpa at Waimea" src="images/txanpa_320.jpg">
+        </noscript>
+    </p>
+    <p>
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+    </p>
+  
+  
+   
+    <h2>Group 2</h2>
+    <div id="group2">
+        <p>
+            <img class="responsive" alt="Cocoa Beach" data-src="cocoa.jpg">
+            <noscript>
+                <img alt="Cocoa Beach" src="images/240/cocoa.jpg">
+            </noscript>
+        </p>
+        <p>
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </p>
+        <p>
+            <img class="responsive" alt="La Jolla" data-src="jolla.jpg">
+            <noscript>
+                <img alt="La Jolla" src="images/240/jolla.jpg">
+            </noscript>
+        </p>
+        <p>
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </p>
+        <p>
+            <img class="responsive" alt="Morro Rocks" data-src="morro.jpg">
+            <noscript>
+                <img alt="Morro Rocks" src="images/240/morro.jpg">
+            </noscript>
+        </p>
+    </div>
+    
+    
+    
+    
+    <h2>Group 3</h2>
+    <p>
+        <img class="mygroup3" alt="Tahiti" data-src="tahiti.jpg">
+        <noscript>
+            <img alt="Tahiti" src="images/240/tahiti.jpg">
+        </noscript>
+    </p>
+    <p>
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+    </p>
+    <p>
+        <img class="mygroup3" alt="Waimea from beach" data-base="images/waimea_beach/" data-src="glup_{breakpoint-name}.jpg">
+        <noscript>
+            <img alt="Waimea from beach" src="images/waimea_beach/glup_240.jpg">
+        </noscript>
+    </p>
+    
+    
+    
+    <h2>Group 4</h2>
+    <div id="group4"></div>
+    <button type=button onclick="addImages(this)">Add images to group 4</button>
+</body>
+</html>
