@@ -32,7 +32,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
-* **Lightweight**: 4kb minified (3kb jQuery version minified)
+* **Lightweight**: 4kb minified (3.45kb jQuery version minified)
 * **AMD compatible**
 * **MIT License**
 
