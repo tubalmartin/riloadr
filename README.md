@@ -528,7 +528,7 @@ Note this method will load exclusively images belonging to the group (Riloadr ob
 
 ## 3. jQuery version
 
-If you already use jQuery in a project, save some bytes and use the jQuery version of Riloadr. Same performance, same behavior!  
+If you already use jQuery in a project, save some bytes and use the jQuery version of Riloadr (riloadr.jquery.js & riloadr.jquery.min.js). Same performance, same behavior!  
 jQuery 1.3.2+ recommended!  
 
 <a name="demos"></a>
