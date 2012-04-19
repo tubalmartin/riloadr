@@ -2,7 +2,7 @@
 
 A cross-browser framework-independent responsive images loader.
 
-The goal of this library is to deliver optimized, contextual image sizes in responsive layouts that utilize dramatically different image sizes at different resolutions. Ideally, this could enable developers to start with mobile-optimized images in their HTML and specify a larger size to be used for users with larger screen resolutions -- without requesting both image sizes, and without UA sniffing.  
+The goal of this library is to deliver optimized, contextual image sizes in responsive layouts that utilize dramatically different image sizes at different resolutions in order to improve page load time.  
 
 **Table of Contents**  
 
@@ -26,13 +26,13 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Absolute control**: Riloadr will process only the images you tell it to.
 * **One request per image**: Riloadr does not make multiple requests for the same image.
 * **Optimal image size delivery**: Riloadr mimics CSS, it computes the viewport's width in CSS pixels and the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
-* **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (faster pageload).
-* **Image groups**: You can create different Riloadr objects and configure each one to your needs (ie: One for images in the sidebar and another one for images in the main column).
+* **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (faster page load).
+* **Image groups**: You can create different Riloadr objects and configure each one to your needs (i.e. A group for images in the sidebar and another one for images in the main column).
 * **Image callbacks**: Riloadr allows you to attach callbacks for the `onload` and `onerror` image events.
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
-* **Lightweight**: 4kb minified (3.45kb jQuery version minified)
+* **Lightweight**: 4kb minified (3.4kb jQuery version minified)
 * **AMD compatible**
 * **MIT License**
 
@@ -105,10 +105,11 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
     
     <!-- Once Riloadr is loaded, set up your image groups -->
     <script type="text/javascript">
-        /* Image group 1: Minimal Js configuration, just the breakpoints.
-         * The group's name will be 'responsive' and the root will be the <body> element
-         * The base URL for each image must be included in each <img> tag
-         * Images will be loaded as soon as the DOM is ready.
+        /* Image group 1 
+         * Minimal options, just the breakpoints:
+         * - The group's name will be 'responsive' and the root will be the <body> element.
+         * - The base URL for each image must be included in each <img> tag.
+         * - Images will be loaded as soon as the DOM is ready.
          */
         var group1 = new Riloadr({
             breakpoints: [
@@ -119,8 +120,13 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
             ]
         });
         
-        // Image group 2: Full Js configuration. 
-        // To know what each setting does read the 'configuration options' section
+        /* Image group 2 
+         * All options: 
+         * - The group's name will be 'main-col-images' and the root will be the <div id="main-column"> element.
+         * - The base URL for each image is already set so you don't need to include it in each <img> tag.
+         * - Images will load when the user is likely to see them (above the fold).
+         * - If an image in this group fails to load, Riloadr will try to load 1 more time.
+         */
         var group2 = new Riloadr({
             root: 'main-column', // ID
             name: 'main-col-images',
@@ -129,9 +135,11 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
             foldDistance: 125,
             onload: function(){
                 // Image x is loaded
+                // Do whatever you need
             },
             onerror: function(){
                 // Image x failed to load, Riloadr will try to load it one more time
+                // Do whatever you need
             },
             retries: 1,
             breakpoints: [
@@ -143,14 +151,13 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
     </script>
 </head>
 <body>
+    <!-- Image group 1 -->
     <header>
-        <!-- You can set the base URL for each image adding a 'data-base' attribute -->
+        <!-- You can set or override the base URL for each image adding a 'data-base' attribute -->
         <img class="responsive" data-base="images/" data-src="tahiti_{breakpoint-name}.jpg">
-        <!-- 
-            Use the <noscript> tag to show images to browsers with no Javascript support.
-            Deliver to these browsers the smallest image size (Mobile first approach).
-        -->
+        <!-- Use the <noscript> tag to show images to browsers with no Javascript support. -->
         <noscript>
+            <!-- Deliver to these browsers the smallest image size (Mobile first approach). -->
             <img src="images/tahiti_320px.jpg">
         </noscript>
         
@@ -161,6 +168,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         </noscript>
     </header>
     
+    <!-- Image group 2 -->
     <div id="main-column">
         <img class="main-col-images" data-src="jolla.jpg">
         <noscript>
