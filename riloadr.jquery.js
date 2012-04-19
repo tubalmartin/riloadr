@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.0.0 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.0.1 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -18,6 +18,8 @@
       , FALSE = !1
       , NULL = null
       , LOAD = 'load'
+      , CALL = 'call'
+      , APPLY = 'apply'
       , ERROR = 'error'
       , EMPTYSTRING = ''
       , LENGTH = 'length'
@@ -29,8 +31,11 @@
       , RETRIES = 'retries'
       , RILOADED = 'riloaded'
       , CLASSNAME = 'className'
+      , PROTOTYPE = 'prototype'
+      , LOADIMAGES = 'loadImages'
       , ORIENTATION = 'orientation'
       , EVENTLISTENER = 'EventListener'
+      , ADDEVENTLISTENER = 'add'+EVENTLISTENER
       , ORIENTATIONCHANGE = ORIENTATION+'change'
       
       , win = window
@@ -57,7 +62,7 @@
       , topics = {}
       
       // Support for Opera Mini (executes Js on the server)
-      , operaMini = Object.prototype.toString.call(win.operamini) === '[object OperaMini]'
+      , operaMini = Object[PROTOTYPE].toString[CALL](win.operamini) === '[object OperaMini]'
       
       // Other uninitialized vars
       , addEvent, removeEvent
@@ -133,7 +138,7 @@
                             publish(SCROLL);
                         }, 250));
                     }
-                    subscribe(SCROLL, instance.loadImages);
+                    subscribe(SCROLL, instance[LOADIMAGES]);
                     
                     // Reduce to 1 the # of times loadImages is called when resizing
                     if (!resizeEventRegistered) {
@@ -142,7 +147,7 @@
                             publish(RESIZE);
                         }, 250));
                     }
-                    subscribe(RESIZE, instance.loadImages);
+                    subscribe(RESIZE, instance[LOADIMAGES]);
                     
                     // Is orientationchange event supported? If so, let's try to avoid false 
                     // positives by checking if win.orientation has actually changed.
@@ -158,27 +163,27 @@
                                 }
                             }, 250));
                         }
-                        subscribe(ORIENTATIONCHANGE, instance.loadImages);
+                        subscribe(ORIENTATIONCHANGE, instance[LOADIMAGES]);
                     }
                  
                     // Load initial "above the fold" images
-                    instance.loadImages();
+                    instance[LOADIMAGES]();
                 
                 // 'load' Fallback   
                 } else {
                     // Load all images after window is loaded if the browser 
                     // does not support the 'getBoundingClientRect' method or 
                     // if it's Opera Mini.
-                    onWindowReady(instance.loadImages);
+                    onWindowReady(instance[LOADIMAGES]);
                 }
                 
             } else if (deferMode === LOAD) {
                 // Load all images after win is loaded
-                onWindowReady(instance.loadImages);
+                onWindowReady(instance[LOADIMAGES]);
                 
             } else {
                 // No defer mode, load all images now!  
-                instance.loadImages();
+                instance[LOADIMAGES]();
             }
         }
         
@@ -217,7 +222,7 @@
             img[ONERROR] = imageOnerrorCallback;
                     
             // Load it    
-            img.src = getImageSrc(img);
+            img.src = getImageSrc(img, base, imgSize);
             
             // Reduce the images array for shorter loops
             images.splice(idx, 1); 
@@ -231,7 +236,7 @@
             var img = this;
             img[ONLOAD] = img[ONERROR] = NULL;
             img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2');
-            ONLOAD in options && options[ONLOAD].call(img); 
+            ONLOAD in options && options[ONLOAD][CALL](img); 
         }
         
         
@@ -244,34 +249,9 @@
             var img = this;
             if (retries > 0 && img[RETRIES] < retries) {
                 img[RETRIES]++;
-                img.src = getImageSrc(img, TRUE);
+                img.src = getImageSrc(img, base, imgSize, TRUE);
             }    
-            ONERROR in options && options[ONERROR].call(img); 
-        }
-        
-        
-        /*
-         * Returns the URL of an image
-         * If reload is TRUE, a timestamp is added to avoid caching.
-         */
-        function getImageSrc(img, reload) {
-            var src = (img.getAttribute('data-base') || base) +
-                (img.getAttribute('data-src') || EMPTYSTRING);
-            
-            if (reload) {
-                src += (QUESTION_MARK_REGEX.test(src) ? '&' : '?') + 
-                    'riloadrts='+(new Date).getTime();
-            }
-
-            return src.replace(BREAKPOINT_NAME_REGEX, imgSize);    
-        } 
-        
-        
-        /*
-         * Tells if an image is visible to the user or not. 
-         */
-        function isBelowTheFold(img) {
-            return $win.height() + $win.scrollTop() <= $(img).offset().top - foldDistance;                 
+            ONERROR in options && options[ONERROR][CALL](img); 
         }
 
         // PUBLIC PRIVILEGED METHODS
@@ -283,12 +263,12 @@
          * - Friendly with other scripts running.
          * - Must be publicly accesible for Pub/Sub but should not be called directly.
          */ 
-        instance.loadImages = function () {
+        instance[LOADIMAGES] = function() {
             var args = arguments;
 
             // Schedule it to run after the current call stack has cleared.
             defer(function(current, i){
-                getImages.apply(NULL, args);
+                getImages[APPLY](NULL, args);
                 
                 // No images to load? finish!
                 if (images[LENGTH]) {
@@ -296,7 +276,7 @@
                     while (current = images[i]) {
                         if (current && !current[RILOADED]) {
                             if (belowfoldEnabled) { 
-                                if (!isBelowTheFold(current)) {
+                                if (!isBelowTheFold(current, foldDistance)) {
                                     loadImage(current, i);
                                     i--;
                                 }
@@ -312,17 +292,6 @@
                     current = NULL;
                 }    
             });
-        };
-        
-        
-        /* 
-         * The "riload" method allows you to load responsive images inserted into the 
-         * document after the DOM is ready or after window is loaded (useful for AJAX 
-         * content & markup created dynamically with javascript). 
-         * Call this method after new markup is inserted into the document.
-         */
-        instance.riload = function() {
-            instance.loadImages(TRUE);           
         };
         
         // INITIALIZATION
@@ -342,7 +311,20 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.0.0';
+    Riloadr.version = '1.0.1';
+    
+    // PUBLIC METHODS (SHARED)
+    // ------------------------
+    
+    /* 
+     * The "riload" method allows you to load responsive images inserted into the 
+     * document after the DOM is ready or after window is loaded (useful for AJAX 
+     * content & markup created dynamically with javascript). 
+     * Call this method after new markup is inserted into the document.
+     */
+    Riloadr[PROTOTYPE].riload = function() {
+        this[LOADIMAGES](TRUE);           
+    };
     
     // HELPER FUNCTIONS
     // ----------------
@@ -428,7 +410,7 @@
         }
         
         if (widths[LENGTH]) {
-            width = math.max.apply(math, widths);
+            width = math.max[APPLY](math, widths);
             
             // Catch cases where the viewport is wider than the screen
             if (!isNaN(screenWidthFallback)) {
@@ -438,6 +420,31 @@
         
         return width || screenWidthFallback || 0;
     } 
+    
+    
+    /*
+     * Returns the URL of an image
+     * If reload is TRUE, a timestamp is added to avoid caching.
+     */
+    function getImageSrc(img, base, imgSize, reload) {
+        var src = (img.getAttribute('data-base') || base) +
+            (img.getAttribute('data-src') || EMPTYSTRING);
+        
+        if (reload) {
+            src += (QUESTION_MARK_REGEX.test(src) ? '&' : '?') + 
+                'riloadrts='+(new Date).getTime();
+        }
+
+        return src.replace(BREAKPOINT_NAME_REGEX, imgSize);    
+    } 
+    
+    
+    /*
+     * Tells if an image is visible to the user or not. 
+     */
+    function isBelowTheFold(img, foldDistance) {
+        return $win.height() + $win.scrollTop() <= $(img).offset().top - foldDistance;                 
+    }
     
     
     /* 
@@ -452,14 +459,14 @@
             context = this; args = arguments;
             var later = function() {
                 timeout = NULL;
-                if (more) func.apply(context, args);
+                if (more) func[APPLY](context, args);
                 whenDone();
             };
             if (!timeout) timeout = setTimeout(later, wait);
             if (throttling) {
                 more = TRUE;
             } else {
-                result = func.apply(context, args);
+                result = func[APPLY](context, args);
             }
             whenDone();
             throttling = TRUE;
@@ -481,9 +488,9 @@
             var context = this, args = arguments
               , later = function() {
                     timeout = NULL;
-                    if (!immediate) func.apply(context, args);
+                    if (!immediate) func[APPLY](context, args);
                 };
-            if (immediate && !timeout) func.apply(context, args);
+            if (immediate && !timeout) func[APPLY](context, args);
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
@@ -495,8 +502,8 @@
      * Defers a function, scheduling it to run after the current call stack has cleared.
      */
     function defer(func) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        setTimeout(function(){ return func.apply(NULL, args); }, 1);
+        var args = Array[PROTOTYPE].slice[CALL](arguments, 1);
+        setTimeout(function(){ return func[APPLY](NULL, args); }, 1);
     }
     
     
@@ -537,8 +544,8 @@
      * event handling system.
      */
     !function() {
-        var w3c = 'add'+EVENTLISTENER in doc
-          , add = w3c ? 'add'+EVENTLISTENER : 'attachEvent'
+        var w3c = ADDEVENTLISTENER in doc
+          , add = w3c ? ADDEVENTLISTENER : 'attachEvent'
           , rem = w3c ? 'remove'+EVENTLISTENER : 'detachEvent'
           , pre = w3c ? EMPTYSTRING : ON;
         
