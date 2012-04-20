@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.0.1 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.0.2 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -329,7 +329,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.0.1';
+    Riloadr.version = '1.0.2';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -378,21 +378,9 @@
                 }
             // Viewport width not found so let's find the smallest image size
             // (mobile first approach).  
-            } else {
-                // Initial value
-                if (_vWidth <= 0) {
-                    _vWidth = minWidth ? minWidth : maxWidth ? maxWidth : _vWidth;
-                    imgSize = name;
-                } else {
-                    if (minWidth < _vWidth) {
-                        _vWidth = minWidth;
-                        imgSize = name;
-                    }
-                    if (maxWidth < _vWidth) {
-                        _vWidth = maxWidth;
-                        imgSize = name;
-                    }
-                }
+            } else if (_vWidth <= 0 || minWidth < _vWidth || maxWidth < _vWidth) {
+                _vWidth = minWidth || maxWidth || _vWidth;
+                imgSize = name;
             }
             i++;
         }    
