@@ -21,18 +21,19 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 
 ## 1. Features
 
-* **No dependencies**: Just Riloadr, HTML and CSS (No server involved if you don't want to, no cookies, no .htaccess, no other Javascript library or framework required).
+* **No dependencies**: Just Javascript, HTML and CSS (No server involved if you don't want to, no cookies, no .htaccess, no other Javascript library or framework required).
 * **Ease of use**: 15-30 mins reading the docs and checking some demos and you're good to go! 
 * **Absolute control**: Riloadr will process only the images you tell it to.
 * **One request per image**: Riloadr does not make multiple requests for the same image.
-* **Optimal image size delivery**: Riloadr mimics CSS, it computes the viewport's width in CSS pixels and the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
 * **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (faster page load).
 * **Image groups**: You can create different Riloadr objects and configure each one to your needs (i.e. A group for images in the sidebar and another one for images in the main column).
 * **Image callbacks**: Riloadr allows you to attach callbacks for the `onload` and `onerror` image events.
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
+* **Mimics CSS**: Riloadr computes the viewport's width in CSS pixels and finds out the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
 * **Lightweight**: 4kb minified (3.4kb jQuery version minified)
+* **jQuery version available**
 * **AMD compatible**
 * **MIT License**
 
