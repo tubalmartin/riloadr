@@ -60,7 +60,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
      if the browser does not support Javascript, we can target
      in CSS images without an 'src' attribute and remove them 
      from the document flow. 
-     Riloadr and Modernizr will remove this 'no-js' class ASAP.
+     Riloadr and Modernizr will remove the 'no-js' class ASAP.
      HTML5 boilerplate uses this technique, so use it!
 -->
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
@@ -107,7 +107,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
     <!-- Once Riloadr is loaded, set up your image groups -->
     <script type="text/javascript">
         /* Image group 1 
-         * Minimal options, just the breakpoints:
+         * Minimum options, just the breakpoints:
          * - The group's name will be 'responsive' and the root will be the <body> element.
          * - The base URL for each image must be included in each <img> tag.
          * - Images will be loaded as soon as the DOM is ready.
@@ -126,7 +126,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
          * - The group's name will be 'main-col-images' and the root will be the <div id="main-column"> element.
          * - The base URL for each image is already set so you don't need to include it in each <img> tag.
          * - Images will load when the user is likely to see them (above the fold).
-         * - If an image in this group fails to load, Riloadr will try to load 1 more time.
+         * - If an image in this group fails to load, Riloadr will try to load it 1 more time.
          */
         var group2 = new Riloadr({
             root: 'main-column', // ID
@@ -158,7 +158,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         <img class="responsive" data-base="images/" data-src="tahiti_{breakpoint-name}.jpg">
         <!-- Use the <noscript> tag to show images to browsers with no Javascript support. -->
         <noscript>
-            <!-- Deliver to these browsers the smallest image size (Mobile first approach). -->
+            <!-- No JS? Deliver to these browsers the smallest image size (Mobile first approach). -->
             <img src="images/tahiti_320px.jpg">
         </noscript>
         
@@ -190,7 +190,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
 ## 2.1. Configuration options
 
 ### base (*String*, Optional)  
-An absolute or relative path to all images in a group.
+An absolute or relative path for all images in a group.
 
 ```js
     var group1 = new Riloadr({
@@ -223,7 +223,7 @@ The `breakpoints` array works in a similar way to media queries in CSS.
 You can configure as many breakpoints (or size ranges) as you need, just like with media queries.  
 A breakpoint is a literal object with up to 4 properties:  
 
-* `name` (*String|Integer* | Required): The breakpoint name. You can set the name you like most for any breakpoint.
+* `name` (*String|Integer* | Required): The breakpoint name. You can set the name you prefer for any breakpoint.
 * `minWidth` (*Integer* | Optional): Equivalent to `min-width` in CSS media queries. Value should be expressed in CSS pixels.
 * `maxWidth` (*Integer* | Optional): Equivalent to `max-width` in CSS media queries. Value should be expressed in CSS pixels.
 * `minDevicePixelRatio` (*Float* | Optional): Equivalent to `min-device-pixel-ratio` in CSS media queries (useful for delivering high resolution images). If two breakpoints only differ by this property, the breakpoint containing this property should be placed in the last place. 
@@ -334,7 +334,7 @@ Two values available:
 ```
 
 If `belowfold` mode is set and Opera Mini is used, Riloadr falls back to `load`.  
-If `belowfold` mode is set and the browser does not support the `getBoundingClientRect` method, Riloadr falls back to `load`.  
+If `belowfold` mode is set and the browser does not support the `getBoundingClientRect` method, Riloadr falls back to `load`. This rule does not apply to the jQuery version. 
 
 ***
 
@@ -356,7 +356,7 @@ If `foldDistance` is not set, it defaults to `100`px.
 A name to identify which images Riloadr must process.  
 This name must be added to the `class` attribute of each `img` tag in a group.  
 When you create a Riloadr object, you're creating an image group.  
-You can create different image groups setting a different `name` option on each Riloadr object even if all images share the same `root`. 
+You can create different image groups setting a different `name` option for each Riloadr object even if all images share the same `root`. 
 
 ```js
     // We're creating 2 image groups that share the same root (body)
@@ -383,7 +383,7 @@ You can create different image groups setting a different `name` option on each 
 
 Image groups are awesome because you can set different options for different sets of images (i.e. An image group for the main column, another for the sidebar, another for the footer...).  
 
-But, let's go one step further and suppose you want to deliver images from different subdomains. You can create a group for each subdomain even if all images share the same `root`, just by setting a different `name` to each group:  
+But, let's go one step further and suppose you want to deliver images from different domains ([Domain sharding](http://www.stevesouders.com/blog/2009/05/12/sharding-dominant-domains/)). You can create a group for each domain even if all images share the same `root`, just by setting a different `name` to each group:  
 
 ```js
     // Main column ID of your website
@@ -391,17 +391,17 @@ But, let's go one step further and suppose you want to deliver images from diffe
     
     // Both groups share the same 'root' but each group will process 
     // exclusively the images identified by the 'name' option.
-    // Use the 'base' option to set the subdomain base URL for each group
+    // Use the 'base' option to set the domain for each group
     
     var group1 = new Riloadr({
-        base: 'http://images1.example.com/{breakpoint-name}/',
+        base: 'http://img1.example.com/{breakpoint-name}/',
         name: 'sub1',
         root: rootId,
         breakpoints: [ ... ]
     });
     
     var group2 = new Riloadr({
-        base: 'http://images2.example.com/{breakpoint-name}/',
+        base: 'http://img2.example.com/{breakpoint-name}/',
         name: 'sub2',
         root: rootId,
         breakpoints: [ ... ]
@@ -515,8 +515,8 @@ If `root` is not set or can't be found, it falls back to the `body` element.
 ## 2.2. Methods
 
 ### riload()
-This method allows you to load responsive images inserted into the document after the initial page load.   
-Call this method after new markup is inserted into the document (useful for AJAX content & markup created dynamically with javascript).  
+This method allows you to load responsive images inserted into the document after a group has been created.   
+Call this method after new markup is inserted into the document.  
 Note this method will load exclusively images belonging to the group (Riloadr object) that invoked `riload()`.
 
 ```js
