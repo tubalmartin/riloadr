@@ -1,0 +1,22 @@
+img {
+    max-width: 100% /* To make all images fluid */
+}
+.lt-ie8 img{
+    -ms-interpolation-mode: bicubic /* IE < 8 does not scale images well */
+}
+.lt-ie7 img{
+    width: 100% /* IE < 7 does not support max-width. Use a container. */
+}
+
+/* Riloadr styles for image groups */
+img.responsive,
+img.group1,
+img.mygroup3 {
+    visibility: hidden; /* To make responsive images not visible until loaded. */
+    min-height: 100px /* To give responsive images some height until loaded. */
+}
+.no-js img.responsive,
+.no-js img.group1,
+.no-js img.mygroup3 {
+    display: none /* To remove responsive images if Javascript is disabled */
+}

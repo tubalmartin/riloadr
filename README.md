@@ -548,10 +548,8 @@ Demos are located [here](https://github.com/tubalmartin/riloadr/tree/master/demo
 Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.  
 To run the demos, download the repo, extract the files (optionally upload them to an online server) and open any `demo/*.html` file in your browser.  
 
-**Online demos you ask?**  
+**Online demos you ask?** [Here you are](http://www.margenn.com/tubal/riloadr/demos/)
 
-* [Framework-independent version](http://www.margenn.com/tubal/riloadr/demos/)
-* [jQuery version](http://www.margenn.com/tubal/riloadr/demos/index.jquery.html) 
 
 <a name="testing"></a>
 

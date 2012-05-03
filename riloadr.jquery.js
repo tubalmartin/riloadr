@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.0.2 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.0.3 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -7,9 +7,9 @@
         define(['jquery'], definition);
     } else {
         // Browser globals
-        window.Riloadr = definition();
+        window.Riloadr = definition(jQuery);
     }
-}(function(){
+}(function($) {
     
     'use strict';
     
@@ -23,7 +23,6 @@
       , ERROR = 'error'
       , EMPTYSTRING = ''
       , LENGTH = 'length'
-      , JQUERY = 'jQuery'
       , SCROLL = 'scroll'
       , RESIZE = 'resize'
       , ONLOAD = ON+LOAD
@@ -43,8 +42,6 @@
       , doc = win.document
       , docElm = doc.documentElement
       , body // Initialized when DOM is ready
-      
-      , $ = JQUERY in win && win[JQUERY] || error(JQUERY+' not found.')
       
       // REGEXPS
       , QUESTION_MARK_REGEX = /\?/
@@ -311,7 +308,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.0.2';
+    Riloadr.version = '1.0.3';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
