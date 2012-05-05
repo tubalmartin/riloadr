@@ -32,7 +32,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Mimics CSS**: Riloadr computes the viewport's width in CSS pixels and finds out the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag.
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
-* **Lightweight**: 4kb minified (3.4kb jQuery version minified)
+* **Lightweight**: 3.8kb minified (3.2kb jQuery version minified)
 * **jQuery version available**
 * **AMD compatible**
 * **MIT License**
