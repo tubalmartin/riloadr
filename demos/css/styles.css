@@ -1,10 +1,10 @@
 img {
     max-width: 100% /* To make all images fluid */
 }
-.lt-ie8 img{
+.lt-ie8 img {
     -ms-interpolation-mode: bicubic /* IE < 8 does not scale images well */
 }
-.lt-ie7 img{
+.lt-ie7 img {
     width: 100% /* IE < 7 does not support max-width. Use a container. */
 }
 
@@ -19,4 +19,8 @@ img.mygroup3 {
 .no-js img.group1,
 .no-js img.mygroup3 {
     display: none /* To remove responsive images if Javascript is disabled */
+}
+/* Hide buttons */
+button {
+    display: none
 }

@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.0.3 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.1.0 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -16,6 +16,7 @@
     var ON = 'on'
       , TRUE = !0
       , FALSE = !1
+      , DELAY = 250
       , NULL = null
       , LOAD = 'load'
       , CALL = 'call'
@@ -64,16 +65,12 @@
       , devicePixelRatio = win.devicePixelRatio || 1
       , viewportWidth // Initialized when DOM is ready
       
-      // Topics/subscriptions map (Pub/Sub)
-      , topics = {}
-      
       // Support for Opera Mini (executes Js on the server)
       , operaMini = Object[PROTOTYPE].toString[CALL](win.operamini) === '[object OperaMini]'
       
       // Other uninitialized vars
       , addEvent, removeEvent, onDomReady
-      , lastOrientation
-      , scrollEventRegistered, resizeEventRegistered, orientationEventRegistered;
+      , lastOrientation;
       
     
     // Remove "no-js" class from <html> element, if it exists:
@@ -106,11 +103,29 @@
         
             // Defer load: disabled by default, if enabled falls back to "load". 
             // Possible values: 'belowfold' & 'load'.
-          , deferMode = (options.defer + EMPTYSTRING).toLowerCase() || FALSE
+          , deferMode = options.defer && (options.defer + EMPTYSTRING).toLowerCase() || FALSE
             
             // 'belowfold' defer mode?
           , belowfoldEnabled = belowfoldSupported && deferMode === 'belowfold' && !operaMini
-            
+          
+            // Reduce by 5.5x the # of times loadImages is called when scrolling
+          , scrollListener = belowfoldEnabled && throttle(function() {
+                instance[LOADIMAGES]();
+            }, DELAY)
+
+            // Reduce to 1 the # of times loadImages is called when resizing 
+          , resizeListener = belowfoldEnabled && debounce(function() {
+                instance[LOADIMAGES]();
+            }, DELAY)
+
+            // Reduce to 1 the # of times loadImages is called when orientation changes.  
+          , orientationchangeListener = belowfoldEnabled && debounce(function(){
+                if (win[ORIENTATION] !== lastOrientation) {
+                    lastOrientation = win[ORIENTATION];
+                    instance[LOADIMAGES]();
+                }
+            }, DELAY)
+
             // Setting foldDistance to n causes image to load n pixels before it is visible.
             // Falls back to 100px
           , foldDistance = +options.foldDistance || 100
@@ -119,113 +134,48 @@
             // Falls back to 0 (no retries)
           , retries = +options[RETRIES] || 0
           
+            // Static list (array) of images.
+          , images = []
+
             // Id of a DOM node where Riloadr must look for 'responsive' images.
             // Falls back to body if not set.
           , parentNode
             
             // Size of images to use.
-          , imgSize
-            
-            // Static list (array) of images.
-          , images;
+          , imgSize;  
         
         // PRIVATE METHODS
         // ---------------
         
-        function init() {
-            if (deferMode === 'belowfold') {
-                // React on scroll, resize and orientationchange events
-                // Attach event listeners just once & notify Riloadr instances of events.
-                if (belowfoldEnabled) {
-                    // Reduce by 5.5x the # of times loadImages is called when scrolling
-                    if (!scrollEventRegistered) {
-                        scrollEventRegistered = TRUE;
-                        addEvent(win, SCROLL, throttle(function() {
-                            publish(SCROLL);
-                        }, 250));
-                    }
-                    subscribe(SCROLL, instance[LOADIMAGES]);
-                    
-                    // Reduce to 1 the # of times loadImages is called when resizing
-                    if (!resizeEventRegistered) {
-                        resizeEventRegistered = TRUE;
-                        addEvent(win, RESIZE, debounce(function() {
-                            publish(RESIZE);
-                        }, 250));
-                    }
-                    subscribe(RESIZE, instance[LOADIMAGES]);
-                    
-                    // Is orientationchange event supported? If so, let's try to avoid false 
-                    // positives by checking if win.orientation has actually changed.
-                    // Reduce to 1 the # of times loadImages is called when orientation changes.
-                    if (orientationSupported) {
-                        if (!orientationEventRegistered) {
-                            orientationEventRegistered = TRUE;
-                            lastOrientation = win[ORIENTATION];
-                            addEvent(win, ORIENTATIONCHANGE, debounce(function(){
-                                if (win[ORIENTATION] !== lastOrientation) {
-                                    lastOrientation = win[ORIENTATION];
-                                    publish(ORIENTATIONCHANGE);
-                                }
-                            }, 250));
-                        }
-                        subscribe(ORIENTATIONCHANGE, instance[LOADIMAGES]);
-                    }
-                 
-                    // Load initial "above the fold" images
-                    instance[LOADIMAGES]();
-                
-                // 'load' Fallback   
-                } else {
-                    // Load all images after window is loaded if the browser 
-                    // does not support the 'getBoundingClientRect' method or 
-                    // if it's Opera Mini.
-                    onWindowReady(instance[LOADIMAGES]);
-                }
-                
-            } else if (deferMode === LOAD) {
-                // Load all images after win is loaded
-                onWindowReady(instance[LOADIMAGES]);
-                
-            } else {
-                // No defer mode, load all images now!  
-                instance[LOADIMAGES]();
-            }
-        }
-        
-        
         /*
-         * Collects all 'responsive' images from the DOM node specified.
-         * If no DOM node is specified, it falls back to body.
-         */
-        function getImages(update) {
-            // If initial collection is done and 
-            // no new images have been added to the DOM, do nothing.
-            if (!images || update === TRUE) {
-                images = images || [];
-            
-                var imageList = selectorsApiSupported && 
-                        parentNode[QUERYSELECTORALL]('img.'+className) || 
-                        parentNode.getElementsByTagName('img')
-                  , i = 0
-                  , current;         
-                
-                // Create a static list
-                while (current = imageList[i]) {
-                    // If we haven't processed this image yet and it is a responsive image
-                    if (current && !current[RILOADED] &&
-                        (selectorsApiSupported || current[CLASSNAME].indexOf(className) >= 0)) {
-                        images.push(current);
-                    }
-                    i++;
-                }
-    
-                // Clean up
-                imageList = current = NULL;
-            }
+         * Adds event listeners if defer mode is 'belowfold'
+         * React on scroll, resize and orientationchange events
+         */  
+        function addBelowfoldListeners() {
+            addEvent(win, SCROLL, scrollListener);        
+            addEvent(win, RESIZE, resizeListener);
+
+            // Is orientationchange event supported? If so, let's try to avoid false 
+            // positives by checking if win.orientation has actually changed.
+            if (orientationSupported) {
+                lastOrientation = win[ORIENTATION];
+                addEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
+            }    
         }
-        
-        
+
+
+        /*
+         * Removes event listeners if defer mode is 'belowfold'
+         */  
+        function removeBelowfoldListeners() {
+            removeEvent(win, SCROLL, scrollListener);        
+            removeEvent(win, RESIZE, resizeListener);
+
+            // Is orientationchange event supported? If so, remove the listener 
+            orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
+        }
+
+
         /*
          * Loads an image.
          */
@@ -277,19 +227,38 @@
         // -------------------------
         
         /*
-         * Loads 'responsive' images
+         * Collects and loads all 'responsive' images from the DOM node specified.
+         * If no DOM node is specified, it falls back to body.
          * Notes:
          * - Friendly with other scripts running.
-         * - Must be publicly accesible for Pub/Sub but should not be called directly.
+         * - Must be publicly accesible but should not be called directly.
          */ 
-        instance[LOADIMAGES] = function() {
-            var args = arguments;
-
+        instance[LOADIMAGES] = function(update) {
             // Schedule it to run after the current call stack has cleared.
-            defer(function(current, i){
-                getImages[APPLY](NULL, args);
+            defer(function(imageList, current, i){
+                // If initial collection is done and 
+                // no new images have been added to the DOM, do nothing.
+                if (!images[LENGTH] || update === TRUE) {
+                    // Add event listeners
+                    belowfoldEnabled && addBelowfoldListeners();
+
+                    imageList = selectorsApiSupported && 
+                        parentNode[QUERYSELECTORALL]('img.'+className) || 
+                        parentNode.getElementsByTagName('img');         
+                    
+                    // Create a static list
+                    i = 0;
+                    while (current = imageList[i]) {
+                        // If we haven't processed this image yet and it is a responsive image
+                        if (current && !current[RILOADED] &&
+                            (selectorsApiSupported || current[CLASSNAME].indexOf(className) >= 0)) {
+                            images.push(current);
+                        }
+                        i++;
+                    }
+                }
                 
-                // No images to load? finish!
+                // Load images
                 if (images[LENGTH]) {
                     i = 0;
                     while (current = images[i]) {
@@ -306,10 +275,13 @@
                         }
                         i++;
                     }
-    
-                    // Clean up
-                    current = NULL;
-                }    
+                } 
+
+                // No more images to load? remove event listeners
+                belowfoldEnabled && !images[LENGTH] && removeBelowfoldListeners();
+
+                // Clean up
+                imageList = current = NULL;     
             });
         };
         
@@ -321,15 +293,24 @@
             parentNode = options.root && doc.getElementById(options.root) || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
             imgSize = getSizeOfImages(breakpoints, viewportWidth); 
-            init();
+
+            if (!deferMode || belowfoldEnabled) {
+                // No defer mode: load all images now! OR 
+                // 'belowfold' mode enabled: Load initial "above the fold" images
+                instance[LOADIMAGES](); 
+            } else {
+                // defer mode = 'load': Load all images after window is loaded OR 
+                // 'belowfold' not supported: 'load' fallback
+                onWindowReady(instance[LOADIMAGES]);
+            }
         });
-    };
+    }
     
     // PUBLIC STATIC PROPERTIES
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.0.3';
+    Riloadr.version = '1.1.0';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -458,57 +439,79 @@
     
     
     /* 
-     * Thanks to underscore.js
+     * Thanks to underscore.js and lodash.js
      * Returns a function, that, when invoked, will only be triggered at most once
-     * during a given win of time.
+     * during a given window of time.
      */
     function throttle(func, wait) {
-        var context, args, timeout, throttling, more, result
-          , whenDone = debounce(function(){ more = throttling = FALSE; }, wait);
+        var args,
+            result,
+            thisArg,
+            timeoutId,
+            lastCalled = 0;
+
+        function trailingCall() {
+            lastCalled = new Date;
+            timeoutId = NULL;
+            func[APPLY](thisArg, args);
+        }
+
         return function() {
-            context = this; args = arguments;
-            var later = function() {
-                timeout = NULL;
-                if (more) func[APPLY](context, args);
-                whenDone();
-            };
-            if (!timeout) timeout = setTimeout(later, wait);
-            if (throttling) {
-                more = TRUE;
-            } else {
-                result = func[APPLY](context, args);
+            var now = new Date,
+                remain = wait - (now - lastCalled);
+
+            args = arguments;
+            thisArg = this;
+
+            if (remain <= 0) {
+                lastCalled = now;
+                result = func[APPLY](thisArg, args);
+            } else if (!timeoutId) {
+                timeoutId = setTimeout(trailingCall, remain);
             }
-            whenDone();
-            throttling = TRUE;
             return result;
         };
     }
     
     
     /* 
-     * Thanks to underscore.js
+     * Thanks to underscore.js and lodash.js
      * Returns a function, that, as long as it continues to be invoked, will not
      * be triggered. The function will be called after it stops being called for
      * N milliseconds. If `immediate` is passed, trigger the function on the
      * leading edge, instead of the trailing.
      */
     function debounce(func, wait, immediate) {
-        var timeout;
+        var args,
+            result,
+            thisArg,
+            timeoutId;
+
+        function delayed() {
+            timeoutId = NULL;
+            if (!immediate) {
+                func[APPLY](thisArg, args);
+            }
+        }
+
         return function() {
-            var context = this, args = arguments
-              , later = function() {
-                    timeout = NULL;
-                    if (!immediate) func[APPLY](context, args);
-                };
-            if (immediate && !timeout) func[APPLY](context, args);
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+            var isImmediate = immediate && !timeoutId;
+            args = arguments;
+            thisArg = this;
+
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(delayed, wait);
+
+            if (isImmediate) {
+                result = func[APPLY](thisArg, args);
+            }
+            return result;
         };
     }
     
     
     /*
-     * Inspired by underscore.js
+     * Thanks to underscore.js and lodash.js
      * Defers a function, scheduling it to run after the current call stack has cleared.
      */
     function defer(func) {
@@ -524,28 +527,6 @@
         throw new Error( 'Riloadr: ' + msg );
     }
     
-    
-    /*
-     * Barebones Pub/Sub
-     */
-    function publish(topic) {
-        var subscribers = topics[topic]
-          , i = 0
-          , current;
-        
-        if (subscribers) {
-            while (current = subscribers[i]) {
-                current();
-                i++;
-            }
-        }
-    }
-    
-    
-    function subscribe(topic, fn) {
-        (topics[topic] = topics[topic] || []).push(fn);
-    }
-
 
     /*
      * Simple event attachment/detachment
@@ -668,7 +649,7 @@
             // If DOM is ready, execute the function (async), otherwise wait
             isReady ? defer( fn ) : callbacks.push( fn );
         };
-    }());
+    }()); 
     
     
     /*

@@ -114,29 +114,55 @@
         ]
     });
     
-    // Group 4 Button - Event listener registration when DOM is ready
+    // Buttons will show up when window is loaded
     // Although this works x-browser, this code is shit so don't use it!!
-    var id = window.setInterval(function() {
-        var button = document.getElementById('group4-button');
+    window.onload = function() {
+        var group2Container = document.getElementById('group2'),
+            group2Button = document.getElementById('group2-button'),
+            group2ImageNames = [
+                {name: 'cocoa', alt: 'Cocoa Beach'},
+                {name: 'morro', alt: 'Morro Rocks'},
+                {name: 'jolla', alt: 'La Jolla'},
+                {name: 'tahiti', alt: 'Tahiti'}
+            ],
+            group4Container = document.getElementById('group4'),
+            group4Button = document.getElementById('group4-button');
+
+        // Display them
+        group2Button.style.display = group4Button.style.display = 'block';    
         
-        if (button !== null) {
-            window.clearInterval(id);
-            // Register click listener
-            button.onclick = function() {
-                // Hide the button
-                this.style.display = 'none';
-                // Add images to the document with Javascript
-                document.getElementById('group4').innerHTML = 
-                    '<p>' +
-                        '<img class="mygroup4" data-src="cocoa.jpg" alt="group4 - Cocoa Beach">' + 
-                    '</p>' + 
-                    '<p>' + 
-                        '<img class="mygroup4" data-src="morro.jpg" alt="group4 - Morro Rocks">' + 
-                    '</p>';
-                    
-                group4.riload();    
-            };  
-        }
-    }, 25);
-    
+        // Register click listeners
+        // Group 2 button
+        group2Button.onclick = function() {
+            var p = document.createElement('p'),
+                img = document.createElement('img'),
+                image = group2ImageNames[Math.floor(Math.random() * group2ImageNames.length)];
+
+            img.className = 'responsive';
+            img.alt = img.className + ' - ' + image.alt;
+            img.setAttribute('data-src', image.name + '.jpg');
+
+            // Add images to the document with Javascript
+            p.appendChild(img);
+            group2Container.appendChild(p);
+                
+            group2.riload();    
+        };
+
+        // Group 4 button
+        group4Button.onclick = function() {
+            // Add images to the document with Javascript
+            // You can use innerHTML to add new images to a group and only those
+            // will be processed by Riloadr.
+            group4Container.innerHTML += 
+                '<p>' +
+                    '<img class="mygroup4" data-src="cocoa.jpg" alt="group4 - Cocoa Beach">' + 
+                '</p>' + 
+                '<p>' + 
+                    '<img class="mygroup4" data-src="morro.jpg" alt="group4 - Morro Rocks">' + 
+                '</p>';
+                
+            group4.riload();    
+        };
+    };
 });
