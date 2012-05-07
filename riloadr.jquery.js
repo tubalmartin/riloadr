@@ -46,7 +46,7 @@
         // Event model
       , w3c = ADDEVENTLISTENER in doc
       , pre = w3c ? EMPTYSTRING : ON
-      , add = w3c ? ADDEVENTLISTENER : ATTACHEVENT
+      , add = w3c ? ADDEVENTLISTENER : 'attachEvent'
       , rem = w3c ? 'remove'+EVENTLISTENER : 'detachEvent'
 
         // REGEXPS
