@@ -46,31 +46,36 @@
       , ORIENTATIONCHANGE = ORIENTATION+'change'
       , GETBOUNDINGCLIENTRECT = 'getBoundingClientRect'
       
+      , body
       , win = window
       , doc = win.document
       , docElm = doc.documentElement
-      , body // Initialized when DOM is ready
+
+        // Event model
+      , w3c = ADDEVENTLISTENER in doc
+      , pre = w3c ? EMPTYSTRING : ON
+      , add = w3c ? ADDEVENTLISTENER : ATTACHEVENT
+      , rem = w3c ? 'remove'+EVENTLISTENER : 'detachEvent'
       
-      // REGEXPS
+        // REGEXPS
       , QUESTION_MARK_REGEX = /\?/
       , BREAKPOINT_NAME_REGEX = /{breakpoint-name}/gi
       
-      // Feature support
+        // Feature support
+      , selectorsApiSupported = QUERYSELECTORALL in doc
       , belowfoldSupported = GETBOUNDINGCLIENTRECT in docElm
       , orientationSupported = ORIENTATION in win && ON+ORIENTATIONCHANGE in win
-      , selectorsApiSupported = QUERYSELECTORALL in doc
       
-      // Screen info 
+        // Screen info 
+      , viewportWidth
       , screenWidth = win.screen.width
       , devicePixelRatio = win.devicePixelRatio || 1
-      , viewportWidth // Initialized when DOM is ready
       
-      // Support for Opera Mini (executes Js on the server)
+        // Support for Opera Mini (executes Js on the server)
       , operaMini = Object[PROTOTYPE].toString[CALL](win.operamini) === '[object OperaMini]'
       
-      // Other uninitialized vars
-      , addEvent, removeEvent, onDomReady
-      , lastOrientation;
+        // Other uninitialized vars
+      , onDomReady, lastOrientation;
       
     
     // Remove "no-js" class from <html> element, if it exists:
@@ -90,23 +95,35 @@
         
         var instance = this
             
-           // CSS-like breakpoints configuration (required)
+            // Base path
+          , base = options.base || EMPTYSTRING
+            
+            // CSS-like breakpoints configuration (required)
           , breakpoints = options.breakpoints || error('"breakpoints" not defined.')  
             
-            // Name to identify images that must be processed by Riloadr.
+            // Group name: a name to identify images that must be processed by Riloadr.
             // Specified in the 'class' attribute of 'img' tags.
           , className = options.name || 'responsive'
           , classNameRegexp = new RegExp('(^|\\s)'+className+'(\\s|$)')
-          
-            // Base path
-          , base = options.base || EMPTYSTRING
         
             // Defer load: disabled by default, if enabled falls back to "load". 
             // Possible values: 'belowfold' & 'load'.
-          , deferMode = options.defer && (options.defer + EMPTYSTRING).toLowerCase() || FALSE
+          , deferMode = options.defer && (options.defer).toLowerCase() || FALSE
+
+            // Setting foldDistance to n causes image to load n pixels before it is visible.
+            // Falls back to 100px
+          , foldDistance = options.foldDistance || 100
+          
+            // # of times to retry to load an image if initial loading failed.
+            // Falls back to 0 (no retries)
+          , retries = options[RETRIES] || 0
+          
+            // Id of a DOM node where Riloadr must look for 'responsive' images.
+            // Falls back to body if not set.
+          , root = options.root || NULL  
             
             // 'belowfold' defer mode?
-          , belowfoldEnabled = belowfoldSupported && deferMode === 'belowfold' && !operaMini
+          , belowfoldEnabled = deferMode === 'belowfold' && belowfoldSupported && !operaMini
           
             // Reduce by 5.5x the # of times loadImages is called when scrolling
           , scrollListener = belowfoldEnabled && throttle(function() {
@@ -126,20 +143,8 @@
                 }
             }, DELAY)
 
-            // Setting foldDistance to n causes image to load n pixels before it is visible.
-            // Falls back to 100px
-          , foldDistance = +options.foldDistance || 100
-          
-            // # of times to retry to load an image if initial loading failed.
-            // Falls back to 0 (no retries)
-          , retries = +options[RETRIES] || 0
-          
             // Static list (array) of images.
           , images = []
-
-            // Id of a DOM node where Riloadr must look for 'responsive' images.
-            // Falls back to body if not set.
-          , parentNode
             
             // Size of images to use.
           , imgSize;  
@@ -243,15 +248,16 @@
                     belowfoldEnabled && addBelowfoldListeners();
 
                     imageList = selectorsApiSupported && 
-                        parentNode[QUERYSELECTORALL]('img.'+className) || 
-                        parentNode.getElementsByTagName('img');         
+                        root[QUERYSELECTORALL]('img.'+className) || 
+                        root.getElementsByTagName('img');         
                     
                     // Create a static list
                     i = 0;
                     while (current = imageList[i]) {
                         // If we haven't processed this image yet and it is a responsive image
                         if (current && !current[RILOADED] &&
-                            (selectorsApiSupported || current[CLASSNAME].indexOf(className) >= 0)) {
+                            (selectorsApiSupported || 
+                             current[CLASSNAME].indexOf(className) >= 0)) {
                             images.push(current);
                         }
                         i++;
@@ -262,16 +268,11 @@
                 if (images[LENGTH]) {
                     i = 0;
                     while (current = images[i]) {
-                        if (current && !current[RILOADED]) {
-                            if (belowfoldEnabled) { 
-                                if (!isBelowTheFold(current, foldDistance)) {
-                                    loadImage(current, i);
-                                    i--;
-                                }
-                            } else {
-                                loadImage(current, i);
-                                i--;
-                            }
+                        if (current && !current[RILOADED] && 
+                            (!belowfoldEnabled || belowfoldEnabled && 
+                             !isBelowTheFold(current, foldDistance))) { 
+                            loadImage(current, i);
+                            i--;
                         }
                         i++;
                     }
@@ -290,7 +291,7 @@
         
         onDomReady(function(){
             body = doc.body;
-            parentNode = options.root && doc.getElementById(options.root) || body;
+            root = doc.getElementById(root) || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
             imgSize = getSizeOfImages(breakpoints, viewportWidth); 
 
@@ -349,11 +350,7 @@
                 if (minWidth && maxWidth  && vWidth >= minWidth && vWidth <= maxWidth || 
                     minWidth && !maxWidth && vWidth >= minWidth || 
                     maxWidth && !minWidth && vWidth <= maxWidth) {
-                    if (minDpr) {
-                        if (devicePixelRatio >= minDpr) {
-                            imgSize = name;
-                        }
-                    } else {
+                    if (!minDpr || minDpr && devicePixelRatio >= minDpr) {
                         imgSize = name;
                     }
                 }
@@ -427,7 +424,8 @@
     
     
     /*
-     * Tells if an image is visible to the user or not. 
+     * Tells if an image is visible to the user or not.
+     * Thanks to jQuery 
      */
     function isBelowTheFold(img, foldDistance) {
         var clientTop = docElm[CLIENTTOP] || body[CLIENTTOP] || 0
@@ -444,11 +442,11 @@
      * during a given window of time.
      */
     function throttle(func, wait) {
-        var args,
-            result,
-            thisArg,
-            timeoutId,
-            lastCalled = 0;
+        var args
+          , result
+          , thisArg
+          , timeoutId
+          , lastCalled = 0;
 
         function trailingCall() {
             lastCalled = new Date;
@@ -457,8 +455,8 @@
         }
 
         return function() {
-            var now = new Date,
-                remain = wait - (now - lastCalled);
+            var now = new Date
+              , remain = wait - (now - lastCalled);
 
             args = arguments;
             thisArg = this;
@@ -482,10 +480,10 @@
      * leading edge, instead of the trailing.
      */
     function debounce(func, wait, immediate) {
-        var args,
-            result,
-            thisArg,
-            timeoutId;
+        var args
+          , result
+          , thisArg
+          , timeoutId;
 
         function delayed() {
             timeoutId = NULL;
@@ -531,20 +529,14 @@
     /*
      * Simple event attachment/detachment
      */
-    !function() {
-        var w3c = ADDEVENTLISTENER in doc
-          , add = w3c ? ADDEVENTLISTENER : ATTACHEVENT
-          , rem = w3c ? 'remove'+EVENTLISTENER : 'detachEvent'
-          , pre = w3c ? EMPTYSTRING : ON;
-        
-        addEvent = function(elem, type, fn) {
-            elem[add](pre + type, fn, FALSE);
-        };
-        
-        removeEvent = function(elem, type, fn) {
-            elem[rem](pre + type, fn, FALSE);
-        };
-    }();
+    function addEvent(elem, type, fn) {
+        elem[add](pre + type, fn, FALSE);
+    }
+    
+
+    function removeEvent(elem, type, fn) {
+        elem[rem](pre + type, fn, FALSE);
+    }
     
     
     /*
@@ -555,17 +547,17 @@
      * - Compatible with async script loading
      */
     onDomReady = (function(){
-        var DOMContentLoaded = 'DOMContentLoaded',
-        toplevel = FALSE,
-        
-        // Callbacks pending execution until DOM is ready
-        callbacks = [],
-        
-        // Is the DOM ready to be used? Set to true once it occurs.
-        isReady = FALSE,
-        
-        // The document ready event handler
-        DOMContentLoadedHandler;
+        var DOMContentLoaded = 'DOMContentLoaded'
+          , toplevel = FALSE
+            
+            // Callbacks pending execution until DOM is ready
+          , callbacks = []
+            
+            // Is the DOM ready to be used? Set to true once it occurs.
+          , isReady = FALSE
+            
+            // The document ready event handler
+          , DOMContentLoadedHandler;
         
         // Handle when the DOM is ready
         function ready( fn ) {
