@@ -510,6 +510,17 @@ If `root` is not set or can't be found, it falls back to the `body` element.
 
 ***
 
+### monitorViewportWidth (*Boolean* | Optional)
+Set to true if you would like to load larger breakpoint images if the viewport is resized to be larger than the original.
+The default value is false.
+
+```js
+    var group1 = new Riloadr({
+        monitorViewportWidth: true
+    });
+```
+***
+
 <a name="methods"></a>
 
 ## 2.2. Methods

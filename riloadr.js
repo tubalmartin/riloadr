@@ -28,6 +28,7 @@
       , RESIZE = 'resize'
       , ONLOAD = ON+LOAD
       , ONERROR = ON+ERROR
+      , VISIBLE = 'visible'
       , RETRIES = 'retries'
       , COMPLETE = 'complete'
       , RILOADED = 'riloaded'
@@ -125,13 +126,20 @@
             // 'belowfold' defer mode?
           , belowfoldEnabled = deferMode === 'belowfold' && belowfoldSupported && !operaMini
           
+            // watch for the viewport changing, then load new images
+          , monitorViewportWidth = (options.monitorViewportWidth) || false
+
+          , maxBreakpointName = EMPTYSTRING
+
             // Reduce by 5.5x the # of times loadImages is called when scrolling
           , scrollListener = belowfoldEnabled && throttle(function() {
                 instance[LOADIMAGES]();
             }, DELAY)
 
             // Reduce to 1 the # of times loadImages is called when resizing 
-          , resizeListener = belowfoldEnabled && debounce(function() {
+          , resizeListener = (monitorViewportWidth || belowfoldEnabled) && debounce(function() {
+                viewportWidth = getViewportWidthInCssPixels(); 
+                imgSize = getSizeOfImages(breakpoints, viewportWidth); 
                 instance[LOADIMAGES]();
             }, DELAY)
 
@@ -174,7 +182,9 @@
          */  
         function removeBelowfoldListeners() {
             removeEvent(win, SCROLL, scrollListener);        
-            removeEvent(win, RESIZE, resizeListener);
+            if(!monitorViewportWidth){
+              removeEvent(win, RESIZE, resizeListener);
+            }
 
             // Is orientationchange event supported? If so, remove the listener 
             orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
@@ -186,7 +196,9 @@
          */
         function loadImage(img, idx) {   
             // Flag to avoid reprocessing
-            img[RILOADED] = TRUE;
+            if(!monitorViewportWidth || (monitorViewportWidth && imgSize === maxBreakpointName)){
+              img[RILOADED] = TRUE;
+            }
             
             // Initial # of times we tried to reload this image
             img[RETRIES] = 0;
@@ -209,7 +221,10 @@
         function imageOnloadCallback() {
             var img = this;
             img[ONLOAD] = img[ONERROR] = NULL;
-            img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2');
+            if(img[RILOADED]){
+              img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2');
+            }
+            img.style.visibility = VISIBLE;
             ONLOAD in options && options[ONLOAD][CALL](img); 
         }
         
@@ -243,7 +258,7 @@
             defer(function(imageList, current, i){
                 // If initial collection is done and 
                 // no new images have been added to the DOM, do nothing.
-                if (!images[LENGTH] || update === TRUE) {
+                if (!images[LENGTH] || update === TRUE || monitorViewportWidth) {
                     // Add event listeners
                     belowfoldEnabled && addBelowfoldListeners();
 
@@ -294,6 +309,7 @@
             root = doc.getElementById(root) || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
             imgSize = getSizeOfImages(breakpoints, viewportWidth); 
+            maxBreakpointName = getMaxBreakpoint(breakpoints);
 
             if (!deferMode || belowfoldEnabled) {
                 // No defer mode: load all images now! OR 
@@ -329,6 +345,35 @@
     // HELPER FUNCTIONS
     // ----------------
     
+    function getMaxBreakpoint(breakpoints) {
+      var imgSize = EMPTYSTRING
+      , i=0
+      , largestMinWidth = 0
+      , largestMinDpr = 0
+      , breakpoint, minWidth, name, minDpr;
+      while(breakpoint = breakpoints[i]){
+        name     = breakpoint['name'];
+        minWidth = breakpoint['minWidth'];
+        minDpr   = breakpoint['minDevicePixelRatio'];
+
+        //if this is the first time through, or our minWidth is larger set the breakpoint
+        if((imgSize === EMPTYSTRING || largestMinWidth === 0) || largestMinWidth < minWidth) {
+          largestMinWidth = minWidth || 0;
+          largestMinDpr = minDpr || 0;
+          imgSize = name;
+        } else if(largestMinWidth == minWidth && minDpr ) {
+            //Take the higher resolution
+            if(largestMinDpr < minDpr) {
+              largestMinWidth = minWidth || 0;
+              largestMinDpr = minDpr;
+              imgSize = name;
+            }
+        }
+        i++;
+      }
+      // Cast to string
+        return imgSize + EMPTYSTRING;
+    }
     /*
      * Returns the breakpoint name (image size to use).
      * Uses the viewport width to mimic CSS behavior.
