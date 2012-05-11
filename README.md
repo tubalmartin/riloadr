@@ -175,7 +175,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
              - Pros: Valid markup, <noscript> tag not needed.
              - Cons: High probability of making 2 requests instead of 1 (worse performance).
         -->
-        <img class="responsive" src="images/cocoa_240.jpg" data-src="images/cocoa_{breakpoint-name}.jpg">
+        <img class="responsive" src="images/cocoa_320px.jpg" data-src="images/cocoa_{breakpoint-name}.jpg">
     </header>
     
     <!-- Image group 2 -->
