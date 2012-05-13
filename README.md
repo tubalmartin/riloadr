@@ -30,7 +30,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Image callbacks**: Riloadr allows you to attach callbacks for the `onload` and `onerror` image events.
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
 * **Mimics CSS**: Riloadr computes the viewport's width in CSS pixels and finds out the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
-* **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag OR add and set the `src` attribute with the smallest image (the latter approach may make 2 requests instead of 1).
+* **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag OR add and set the `src` attribute with the smallest image (the latter approach may make 2 requests instead of 1, not recommended).
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
 * **Lightweight**: 3.8kb minified (3.2kb jQuery version minified)
 * **jQuery version available**
@@ -89,7 +89,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         .lt-ie7 img{
             width: 100% /* IE < 7 does not support max-width. Use a container. */
         }
-        /* Riloadr styles for image groups */
+        /* Riloadr styles for image groups: assumes <noscript> technique is used */
         img.responsive, 
         img.main-col-images {
             visibility: hidden; /* To make responsive images not visible until loaded. */
@@ -97,7 +97,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         }
         .no-js img.responsive,
         .no-js img.main-col-images {
-            display: none /* To remove responsive images if Javascript is disabled & <noscript> technique is used */
+            display: none /* To remove responsive images if Javascript is disabled */
         }
     </style>
     
@@ -162,20 +162,21 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
              
              Technique 1: <noscript> tag.
              - Pros: 1 request per image.
-             - Cons: Cumbersome :(
+             - Cons: Cumbersome (You may create a function to print images such as: https://gist.github.com/2689388)
+             
+             Technique 2: 'src' attribute.
+             - Pros: Valid markup, <noscript> tag not needed.
+             - Cons: High probability of making 2 requests instead of 1 (worse performance, not recommended).
         -->
         <noscript>
             <img src="images/tahiti_320px.jpg">
         </noscript>
         
-        <!-- You can set the full src path for each image (no 'base' option nor 'data-base' attribute)
-             
-             No Javascript support? 
-             Technique 2: 'src' attribute.
-             - Pros: Valid markup, <noscript> tag not needed.
-             - Cons: High probability of making 2 requests instead of 1 (worse performance).
-        -->
-        <img class="responsive" src="images/cocoa_320px.jpg" data-src="images/cocoa_{breakpoint-name}.jpg">
+        <!-- You can set the full src path for each image (no 'base' option nor 'data-base' attribute) -->
+        <img class="responsive" data-src="images/cocoa_{breakpoint-name}.jpg">
+        <noscript>
+            <img src="images/cocoa_320px.jpg">
+        </noscript>
     </header>
     
     <!-- Image group 2 -->
