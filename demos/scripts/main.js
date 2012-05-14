@@ -74,6 +74,7 @@
         root: 'group2', /* Id of DOM node */
         base: 'images/{breakpoint-name}/',
         defer: 'belowfold',
+        monitorViewportWidth: true,
         foldDistance: 120,
         onload: onload,
         onerror: onerror,
@@ -93,6 +94,7 @@
         defer: 'load',
         onload: onload,
         onerror: onerror,
+        monitorViewportWidth: true,
         retries: 1,
         breakpoints: [
             {name: 240, maxWidth: 240},
