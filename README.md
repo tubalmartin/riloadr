@@ -34,7 +34,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Bandwidth testing**: Riloadr uses the W3C Network Api to find out wether connection speed is fast enough to deliver HiDPI images (can be disabled). 
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag OR add and set the `src` attribute with the smallest image (the latter approach may make 2 requests instead of 1, not recommended).
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
-* **Lightweight**: 3.8kb minified (3.2kb jQuery version minified)
+* **Lightweight**: 4.1kb minified (3.4kb jQuery version minified)
 * **jQuery version available**
 * **AMD compatible**
 * **MIT License**
