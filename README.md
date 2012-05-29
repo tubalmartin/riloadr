@@ -642,17 +642,17 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 ### 1.2.0
 
-* Added "oncomplete" option (callback)
-* Added "ignoreLowBandwidth" option (for HiDPI images)
+* Added `oncomplete` option (callback)
+* Added `ignoreLowBandwidth` option (for HiDPI images)
 * Bugfix: When calling `riload()` more than once on a group configured to load images above the fold (defer: belowfold), Riloadr was collecting more images than it should.
 
 ### 1.1.0
 
 Much much better performance:
 * Pub/Sub removed (less function calls and loops)
-* 'throttle' and 'debounce' methods from underscore.js replaced by lodash.js counterparts (4% faster)
-* If belowfold defer mode is used, event listeners are added/removed when needed (specially noticeable when scrolling)
-* Some refactoring ('init' and 'getImages' methods removed & better initialization)
+* `throttle` and `debounce` methods from underscore.js replaced by lodash.js counterparts (4% faster)
+* If `belowfold` defer mode is used, event listeners are added/removed when needed (specially noticeable when scrolling)
+* Some refactoring (`init` and `getImages` methods removed & better initialization)
 * Images used in demos reduced in size (sorry guys for previous versions)
 * Better demos overall
 * Smaller footprint!
