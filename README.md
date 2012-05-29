@@ -370,7 +370,7 @@ If `foldDistance` is not set, it defaults to `100`px.
 
 ***
 
-### ignoreLowBandwith (*Boolean* | Optional)    
+### ignoreLowBandwidth (*Boolean* | Optional)    
 Riloadr will try to find out if the connection speed of the user's device is fast enough to deliver HiDPI images.   
 For that purpose, Riloadr uses the W3C Network Api (both the Working and Editor's Drafts).   
 Currently, only a small subset of devices & browsers support this specification although wider support is expected.
@@ -389,7 +389,7 @@ If a device/browser does not support the Network Api yet, Riloadr assumes a fast
     });
 ```
 
-If `ignoreLowBandwith` is not set or is not `true`, it defaults to `false`, meaning Riloadr will only request HiDPI images if connection speed is fast enough.  
+If `ignoreLowBandwidth` is not set or is not `true`, it defaults to `false`, meaning Riloadr will only request HiDPI images if connection speed is fast enough.  
 
 ¿What is "fast enough" for Riloadr?  
 
