@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.1.0 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.2.0 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -29,9 +29,11 @@
       , ONLOAD = ON+LOAD
       , ONERROR = ON+ERROR
       , RETRIES = 'retries'
+      , COMPLETE = 'complete'
       , RILOADED = 'riloaded'
       , CLASSNAME = 'className'
       , PROTOTYPE = 'prototype'
+      , ONCOMPLETE = ON+COMPLETE
       , LOADIMAGES = 'loadImages'
       , ORIENTATION = 'orientation'
       , EVENTLISTENER = 'EventListener'
@@ -61,6 +63,9 @@
       , screenWidth = win.screen.width
       , devicePixelRatio = win.devicePixelRatio || 1
       
+        // Bandwidth info (bool)
+      , hasLowBandwidth = hasLowBandwidth()
+
         // Support for Opera Mini (executes Js on the server)
       , operaMini = Object[PROTOTYPE].toString[CALL](win.operamini) === '[object OperaMini]'
       
@@ -103,6 +108,11 @@
             // Setting foldDistance to n causes image to load n pixels before it is visible.
             // Falls back to 100px
           , foldDistance = options.foldDistance || 100
+
+            // Set to true to deliver HiDPI images despite connection speed.
+            // Defaults to false, meaning connection speed is not ignored so 
+            // HiDPI images will only be requested if connection speed is fast enough.
+          , ignoreLowBandwidth = options.ignoreLowBandwidth || FALSE 
           
             // # of times to retry to load an image if initial loading failed.
             // Falls back to 0 (no retries)
@@ -135,6 +145,9 @@
 
             // Static list (array) of images.
           , images = []
+
+            // # of images not completely loaded
+          , imagesPendingLoad = 0
             
             // Size of images to use.
           , imgSize;
@@ -175,13 +188,10 @@
          * Loads an image.
          */
         function loadImage(img, idx) {   
-            // Flag to avoid reprocessing
-            img[RILOADED] = TRUE;
-            
             // Initial # of times we tried to reload this image
             img[RETRIES] = 0;
             
-            // Callbacks
+            // Image callbacks
             img[ONLOAD] = imageOnloadCallback;
             img[ONERROR] = imageOnerrorCallback;
                     
@@ -200,7 +210,8 @@
             var img = this;
             img[ONLOAD] = img[ONERROR] = NULL;
             img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2');
-            ONLOAD in options && options[ONLOAD][CALL](img); 
+            ONLOAD in options && options[ONLOAD][CALL](img);
+            onCompleteCallback();  
         }
         
         
@@ -211,11 +222,24 @@
          */
         function imageOnerrorCallback() {
             var img = this;
-            if (retries > 0 && img[RETRIES] < retries) {
+            ONERROR in options && options[ONERROR][CALL](img); 
+            if (img[RETRIES] < retries) {
                 img[RETRIES]++;
                 img.src = getImageSrc(img, base, imgSize, TRUE);
-            }    
-            ONERROR in options && options[ONERROR][CALL](img); 
+            } else {
+                // If an image fails to load consider it loaded.
+                onCompleteCallback();
+            } 
+        }
+
+
+        /*
+         * oncomplete Callback
+         * Executes when all images in a group are 100% (down)loaded.
+         */ 
+        function onCompleteCallback() {
+            imagesPendingLoad--;
+            imagesPendingLoad == 0 && ONCOMPLETE in options && options[ONCOMPLETE]();
         }
 
         // PUBLIC PRIVILEGED METHODS
@@ -231,8 +255,8 @@
         instance[LOADIMAGES] = function(update) {
             // Schedule it to run after the current call stack has cleared.
             defer(function(current, i){
-                // If initial collection is done and 
-                // no new images have been added to the DOM, do nothing.
+                // If initial collection is not done or 
+                // new images have been added to the DOM, collect them.
                 if (!images[LENGTH] || update === TRUE) {
                     // Add event listeners
                     belowfoldEnabled && addBelowfoldListeners();
@@ -240,7 +264,14 @@
                     // Create a static list
                     $('img.'+className, root).each(function(idx, elm) {
                         // If we haven't processed this image yet and it is a responsive image
-                        elm && !elm[RILOADED] && images.push(elm);
+                        if (elm && !elm[RILOADED]) {
+                            // Flag to avoid reprocessing
+                            elm[RILOADED] = TRUE;
+                            // Add image to the list
+                            images.push(elm);
+                            // Increment counter
+                            imagesPendingLoad++;
+                        }
                     });
                 }
                 
@@ -248,7 +279,7 @@
                 if (images[LENGTH]) {
                     i = 0;
                     while (current = images[i]) {
-                        if (current && !current[RILOADED] && 
+                        if (current &&
                             (!belowfoldEnabled || belowfoldEnabled && 
                              !isBelowTheFold(current, foldDistance))) { 
                             loadImage(current, i);
@@ -274,7 +305,7 @@
             body = doc.body;
             root = root && $('#'+root) || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
-            imgSize = getSizeOfImages(breakpoints, viewportWidth); 
+            imgSize = getSizeOfImages(breakpoints, viewportWidth, ignoreLowBandwidth); 
             
             if (!deferMode || belowfoldEnabled) {
                 // No defer mode: load all images now! OR 
@@ -292,7 +323,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.1.0';
+    Riloadr.version = '1.2.0';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -314,7 +345,7 @@
      * Returns the breakpoint name (image size to use).
      * Uses the viewport width to mimic CSS behavior.
      */
-    function getSizeOfImages(breakpoints, vWidth) {
+    function getSizeOfImages(breakpoints, vWidth, ignoreLowBandwidth) {
         var imgSize = EMPTYSTRING
           , _vWidth = vWidth
           , i = 0
@@ -331,7 +362,8 @@
                 if (minWidth && maxWidth  && vWidth >= minWidth && vWidth <= maxWidth || 
                     minWidth && !maxWidth && vWidth >= minWidth || 
                     maxWidth && !minWidth && vWidth <= maxWidth) {
-                    if (!minDpr || minDpr && devicePixelRatio >= minDpr) {
+                    if (!minDpr || minDpr && devicePixelRatio >= minDpr &&
+                        (ignoreLowBandwidth || !ignoreLowBandwidth && !hasLowBandwidth)) {
                         imgSize = name;
                     }
                 }
@@ -411,6 +443,31 @@
         return $win.height() + $win.scrollTop() <= $(img).offset().top - foldDistance;                 
     }
     
+
+    /*
+     * Tells whether user's device connection is slow or not.
+     * Fast connection assumed if not detected or offline.
+     * Based on the Network Api:
+     * - MDN: https://developer.mozilla.org/en/DOM/window.navigator.connection
+     * - W3C Working draft: http://www.w3.org/TR/netinfo-api/
+     * - W3C Editor's draft: http://dvcs.w3.org/hg/dap/raw-file/tip/network-api/Overview.html
+     * List of device bandwidths: http://en.wikipedia.org/wiki/List_of_device_bandwidths#Mobile_telephone_interfaces
+     */
+    function hasLowBandwidth() {
+        var navigator = win.navigator
+          , connection = navigator.connection || navigator.mozConnection || 
+                navigator.webkitConnection || navigator.oConnection || 
+                navigator.msConnection || {}
+          , type = connection.type || 'unknown' // polyfill
+          , bandwidth = +connection.bandwidth || Infinity; // polyfill     
+        
+        // 2G, 3G and KB/s < 100 are considered slow connections.
+        // Offline mode is considered fast connection (bandwidth = 0 or type = none).
+        // According to the W3C, 'bandwidth' is reported in MB/s.
+        // 0.09765625 MB/s = 100 KB/s = 800 kbps. Let's round up to 0.1 MB/s.
+        return bandwidth > 0 && bandwidth < 0.1 || /^[23]g|3|4$/.test(type + EMPTYSTRING);       
+    }
+
     
     /* 
      * Thanks to underscore.js and lodash.js
@@ -534,7 +591,7 @@
     function onWindowReady(fn) {
         // Catch cases where onWindowReady is called after 
         // the browser event has already occurred.
-        if (doc['readyState'] === 'complete') {
+        if (doc['readyState'] === COMPLETE) {
             fn();
         } else {
             var _fn = function() {

@@ -77,6 +77,9 @@
         foldDistance: 120,
         onload: onload,
         onerror: onerror,
+        oncomplete: function() {
+            console.log("All images in Group 2 are loaded");
+        },
         retries: 1,
         breakpoints: [
             {name: 240, maxWidth: 240},
@@ -94,6 +97,7 @@
         onload: onload,
         onerror: onerror,
         retries: 1,
+        ignoreLowBandwidth: true,
         breakpoints: [
             {name: 240, maxWidth: 240},
             {name: 320, minWidth: 241, maxWidth: 320},
