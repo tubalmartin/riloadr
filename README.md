@@ -13,9 +13,10 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 3.  [jQuery version](#jquery)    
 4.  [Demos](#demos)
 5.  [Testing](#testing)
-6.  [Contribute](#contribute)
-7.  [Bug tracker](#issues)
-8.  [License](#license)
+6.  [Changelog](#changelog)
+7.  [Contribute](#contribute)
+8.  [Bug tracker](#issues)
+9.  [License](#license)
 
 <a name="features"></a>
 
@@ -635,9 +636,34 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 * Safari (Mac and Win)
 * Opera (Mac and Win)
 
+<a name="changelog"></a>
+
+## 6. Changelog
+
+### 1.2.0
+
+* Added "oncomplete" option (callback)
+* Added "ignoreLowBandwidth" option (for HiDPI images)
+* Bugfix: When calling `riload()` more than once on a group configured to load images above the fold (defer: belowfold), Riloadr was collecting more images than it should.
+
+### 1.1.0
+
+Much much better performance:
+* Pub/Sub removed (less function calls and loops)
+* 'throttle' and 'debounce' methods from underscore.js replaced by lodash.js counterparts (4% faster)
+* If belowfold defer mode is used, event listeners are added/removed when needed (specially noticeable when scrolling)
+* Some refactoring ('init' and 'getImages' methods removed & better initialization)
+* Images used in demos reduced in size (sorry guys for previous versions)
+* Better demos overall
+* Smaller footprint!
+
+### 1.0.0
+
+Initial release.
+
 <a name="contribute"></a>
 
-## 6. Contribute
+## 7. Contribute
 This project was originally created for my company as a need to handle different image sizes for different device screens in order to make websites load faster (specially for mobile devices). Please feel free to improve this project in any way you can.
 
 **Contact Me**
@@ -646,7 +672,7 @@ This project was originally created for my company as a need to handle different
 
 <a name="issues"></a>
 
-## 7. Bug tracker
+## 8. Bug tracker
 
 Find a bug? Please create an issue here on GitHub!
 
@@ -654,7 +680,7 @@ Find a bug? Please create an issue here on GitHub!
 
 <a name="license"></a>
 
-## 8. License
+## 9. License
 
 Copyright (c) 2012 Tubal Martin
 
