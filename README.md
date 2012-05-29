@@ -32,7 +32,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Image groups**: You can create different Riloadr objects and configure each one to your needs (i.e. A group for images in the sidebar and another one for images in the main column).
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
 * **Useful callbacks**: Riloadr allows you to attach callbacks for the `onload` and `onerror` image events. You can also set an `oncomplete` callback that fires when all images in a group are completely loaded.
-* **Bandwidth testing**: Riloadr uses the W3C Network Api to find out wether connection speed is fast enough to deliver HiDPI images (can be disabled). 
+* **Bandwidth testing**: Riloadr uses the W3C Network Api to find out wether connection speed is fast enough to deliver Hi-Res images (can be disabled). 
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag OR add and set the `src` attribute with the smallest image (the latter approach may make 2 requests instead of 1, not recommended).
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
 * **Lightweight**: 4.1kb minified (3.4kb jQuery version minified)
@@ -48,7 +48,7 @@ Riloadr got inspired by the technique used by the [YUI image loader](http://yuil
 
 The main idea behind this technique is to leave the `src` attribute of `img` tags out of the HTML element altogether and instead use a `data-src` attribute.
 
-This way we avoid making multiple requests to the server for different sizes of an image. Once Riloadr chooses the best size to deliver for the current screen, it adds the `src` attribute and the image is requested.
+This way we avoid making multiple requests to the server for different sizes of an image. Once Riloadr chooses the best size to deliver for the current viewport, it adds the `src` attribute and the image is requested.
 
 **Warning!**:   
 Do not set an empty string for the value of src `src=""`.   
@@ -137,7 +137,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
             base: 'images/{breakpoint-name}/', // {breakpoint-name} will be replaced by one of your breakpoints names
             defer: 'belowfold',
             foldDistance: 125,
-            ignoreLowBandwidth: true, // HiDPI images will be requested regardless of connection speed
+            ignoreLowBandwidth: true, // Hi-Res images will be requested regardless of connection speed
             onload: function(){
                 // Image x is loaded
                 // Do whatever you need
@@ -372,7 +372,7 @@ If `foldDistance` is not set, it defaults to `100`px.
 ***
 
 ### ignoreLowBandwidth (*Boolean* | Optional)    
-Riloadr will try to find out if the connection speed of the user's device is fast enough to deliver HiDPI images.   
+In the case of HiDPI screens, Riloadr will try to find out if the connection speed of the user's device is fast enough to deliver Hi-Res images.   
 For that purpose, Riloadr uses the W3C Network Api (both the Working and Editor's Drafts).   
 Currently, only a small subset of devices & browsers support this specification although wider support is expected.
    
@@ -380,23 +380,23 @@ If a device/browser does not support the Network Api yet, Riloadr assumes a fast
 
 ```js
     var group1 = new Riloadr({
-        ignoreLowBandwidth: true, // HiDPI images will be requested regardless of connection speed
+        ignoreLowBandwidth: true, // Hi-Res images will be requested regardless of connection speed
         breakpoints: [
 			{name: '320px', maxWidth: 320}, // iPhone 3
-			{name: '640px', maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display (HiDPI image)
+			{name: '640px', maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display (Hi-Res image)
 			{name: '640px', minWidth: 321, maxWidth: 640},
 			{name: '1024px', minWidth: 641}
 		]
     });
 ```
 
-If `ignoreLowBandwidth` is not set or is not `true`, it defaults to `false`, meaning Riloadr will only request HiDPI images if connection speed is fast enough.  
+If `ignoreLowBandwidth` is not set or is not `true`, it defaults to `false`, meaning Riloadr will only request Hi-Res images if connection speed is fast enough.  
 
 ¿What is "fast enough" for Riloadr?  
 
 * Offline mode (no internet connection).
 * Bandwidth higher than 100 KB/s. 
-* 4g or faster mobile networks (2g & 3g are considered slow for HiDPI images). 
+* 4g or faster mobile networks (2g & 3g are considered slow for Hi-Res images). 
 
 ***
 
@@ -643,7 +643,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 ### 1.2.0
 
 * Added `oncomplete` option (callback)
-* Added `ignoreLowBandwidth` option (for HiDPI images)
+* Added `ignoreLowBandwidth` option (for Hi-Res images - HiDPI screens)
 * Bugfix: When calling `riload()` more than once on a group configured to load images above the fold (defer: belowfold), Riloadr was collecting more images than it should.
 
 ### 1.1.0

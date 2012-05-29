@@ -118,9 +118,9 @@
             // Falls back to 100px
           , foldDistance = options.foldDistance || 100
             
-            // Set to true to deliver HiDPI images despite connection speed.
+            // Set to true to deliver Hi-Res images despite connection speed.
             // Defaults to false, meaning connection speed is not ignored so 
-            // HiDPI images will only be requested if connection speed is fast enough.
+            // Hi-Res images will only be requested if connection speed is fast enough.
           , ignoreLowBandwidth = options.ignoreLowBandwidth || FALSE 
 
             // # of times to retry to load an image if initial loading failed.
