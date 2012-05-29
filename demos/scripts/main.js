@@ -120,7 +120,7 @@
     
     // Buttons will show up when window is loaded
     // Although this works x-browser, this code is shit so don't use it!!
-    window.onload = function() {
+    function activateButtons() {
         var group2Container = document.getElementById('group2'),
             group2Button = document.getElementById('group2-button'),
             group2ImageNames = [
@@ -168,5 +168,11 @@
                 
             group4.riload();    
         };
-    };
+    }
+
+    if (document.readyState === 'complete') {
+        activateButtons();
+    } else {
+        window.onload = activateButtons;
+    }
 });
