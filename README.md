@@ -657,6 +657,21 @@ Much much better performance:
 * Better demos overall
 * Smaller footprint!
 
+### 1.0.3
+
+* Improved module definition for the jQuery version
+* Improved demos
+* Added RequireJS and curl demos
+
+### 1.0.2
+
+* `getSizeOfImages` function refactored (same result and better minification).
+
+### 1.0.1
+
+* Cleaner constructor (`riload`, `getImageSrc` & `isBelowFold` methods moved outside)
+* Better minification (saving bytes!)
+
 ### 1.0.0
 
 Initial release.
