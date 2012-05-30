@@ -9,7 +9,8 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 1.  [Features](#features)
 2.  [How to use](#howto)
     1.  [Configuration options](#options)
-    2.  [Methods](#methods)
+    2.  [Properties](#properties)
+    3.  [Methods](#methods)
 3.  [jQuery version](#jquery)    
 4.  [Demos](#demos)
 5.  [Testing](#testing)
@@ -208,7 +209,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
 
 ## 2.1. Configuration options
 
-### base (*String*, Optional)  
+### base (*String* | Optional)  
 An absolute or relative path for all images in a group.
 
 ```js
@@ -249,7 +250,7 @@ A breakpoint is a literal object with up to 4 properties:
 
 **The `{breakpoint-name}` variable**
 
-The variable `{breakpoint-name}` can be used multiple times in `base`, `data-base` and `data-src` values.  
+The variable `{breakpoint-name}` may be used multiple times in `base`, `data-base` and `data-src` values.  
 Riloadr will replace `{breakpoint-name}` by the `name` property of one of the breakpoints you've set.
 
 Let's see some examples:  
@@ -326,6 +327,33 @@ Example 3:
     <img class="responsive" data-src="Hollywood.jpg">
 ```
 
+Example 4: Let's suppose you want to use Riloadr only to lazy load some images and you don't care about the responsive "thing". Riloadr is so flexible that you could do this:
+
+```js
+    var group4 = new Riloadr({
+        base: 'http://www.myserver.com/photos/', // Set a base (optional)
+        name: 'lazy', // Change the group name (optional)
+        defer: 'belowfold',
+        breakpoints: [
+            {name: 'whatever',  minWidth: 1} // Any screen (here's the trick!)
+        ]
+    });
+```
+
+```html
+    <!-- 
+        In this case we're not using the {breakpoint-name} variable 
+        anywhere because let's pretend we have all images in a single size 
+        and we have no plans to dinamically create different versions (sizes) of them.
+        
+        TADA! You can use Riloadr just as an image loader.  
+    -->
+    <img class="lazy" data-src="wedding.jpg">
+    <img class="lazy" data-src="children.jpg">
+    <img class="lazy" data-src="subdirectory/canada.jpg">
+    <img class="lazy" data-base="http://photos.myoldserver.com/" data-src="sydney.jpg">
+```
+
 **Important!**:   
 When Riloadr parses your `breakpoints` it mimics CSS behavior: Riloadr computes the browser's viewport width in CSS pixels, then traverses your breakpoints to find out the appropiate image size to load and makes use of your breakpoint names to get the correct `src` (image URL) to load the image.  
 Remember, Riloadr *mimics CSS* and as such, it works with CSS pixels not with device pixels. So when you define your breakpoints use this formula to calculate screen width:  
@@ -339,7 +367,7 @@ This is the value that you should set as `minWidth` to target the iPhone 3 & 4 (
 
 ***
 
-### defer (*String*, Optional)  
+### defer (*String* | Optional)  
 Tells Riloadr to defer the load of images.  
 Two values available:  
 
@@ -400,7 +428,7 @@ If `ignoreLowBandwidth` is not set or is not `true`, it defaults to `false`, mea
 
 ***
 
-### name (*String*, Optional)    
+### name (*String* | Optional)    
 A name to identify which images Riloadr must process.  
 This name must be added to the `class` attribute of each `img` tag in a group.  
 When you create a Riloadr object, you're creating an image group.  
@@ -571,9 +599,21 @@ If `root` is not set or can't be found, it falls back to the `body` element.
 
 ***
 
+<a name="properties"></a>
+
+## 2.2. Properties
+
+### version
+
+Contains the version of Riloadr (string).
+
+```js
+    console.log( Riloadr.version );
+```
+
 <a name="methods"></a>
 
-## 2.2. Methods
+## 2.3. Methods
 
 ### riload()
 This method allows you to load responsive images inserted into the document after a group has been created.   
