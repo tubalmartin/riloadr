@@ -1,4 +1,4 @@
-# Riloadr
+# Riloadr 1.2.0 - May 30, 2012
 
 A cross-browser framework-independent responsive images loader.
 
@@ -504,6 +504,7 @@ If `name` is not set, Riloadr will look for images with the class `responsive`.
 
 ### oncomplete (*Function* | Optional)    
 Callback function that will be called when all images in a group are completely (down)loaded.  
+If an image fails to load it's considered loaded.  
 If new images are added dynamically to a group after the `oncomplete` callback is executed, this callback will be executed again once those new images are loaded.
 
 ```js
