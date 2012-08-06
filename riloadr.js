@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.2.0 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.3.0 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -31,6 +31,7 @@
       , RETRIES = 'retries'
       , COMPLETE = 'complete'
       , RILOADED = 'riloaded'
+      , FALLBACK = 'fallback'
       , CLASSNAME = 'className'
       , PROTOTYPE = 'prototype'
       , CLIENTTOP = 'clientTop'
@@ -158,8 +159,14 @@
             // # of images not completely loaded
           , imagesPendingLoad = 0
             
-            // Size of images to use.
-          , imgSize;  
+            // Breakpoint that applies
+          , breakpoint
+
+            // Name of the breakpoint
+          , breakpointName
+
+            // Name of the fallback breakpoint
+          , fallbackBreakpointName; 
         
         // PRIVATE METHODS
         // ---------------
@@ -199,13 +206,16 @@
         function loadImage(img, idx) {   
             // Initial # of times we tried to reload this image
             img[RETRIES] = 0;
+
+            // fallback image flag
+            img[FALLBACK] = FALSE;
             
             // Image callbacks
             img[ONLOAD] = imageOnloadCallback;
             img[ONERROR] = imageOnerrorCallback;
                     
             // Load it    
-            img.src = getImageSrc(img, base, imgSize);
+            img.src = getImageSrc(img, base, breakpointName);
             
             // Reduce the images array for shorter loops
             images.splice(idx, 1);
@@ -230,11 +240,15 @@
          * if an image fails to load.
          */
         function imageOnerrorCallback() {
-            var img = this;   
+            var img = this;  
             ONERROR in options && options[ONERROR][CALL](img); 
             if (img[RETRIES] < retries) {
                 img[RETRIES]++;
-                img.src = getImageSrc(img, base, imgSize, TRUE);
+                img.src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpointName : breakpointName), TRUE);
+            } else if (FALLBACK in breakpoint && !img[FALLBACK]) {
+                img[RETRIES] = 0;
+                img[FALLBACK] = TRUE;
+                img.src = getImageSrc(img, base, fallbackBreakpointName);
             } else {
                 // If an image fails to load consider it loaded.
                 onCompleteCallback();
@@ -321,7 +335,9 @@
             body = doc.body;
             root = doc.getElementById(root) || body;
             viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
-            imgSize = getSizeOfImages(breakpoints, viewportWidth, ignoreLowBandwidth); 
+            breakpoint = getBreakpoint(breakpoints, viewportWidth, ignoreLowBandwidth);
+            breakpointName = breakpoint.name;
+            fallbackBreakpointName = breakpoint[FALLBACK]; 
 
             if (!deferMode || belowfoldEnabled) {
                 // No defer mode: load all images now! OR 
@@ -339,7 +355,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.2.0';
+    Riloadr.version = '1.3.0';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -358,20 +374,19 @@
     // ----------------
     
     /*
-     * Returns the breakpoint name (image size to use).
+     * Returns the breakpoint data to apply.
      * Uses the viewport width to mimic CSS behavior.
      */
-    function getSizeOfImages(breakpoints, vWidth, ignoreLowBandwidth) {
-        var imgSize = EMPTYSTRING
-          , _vWidth = vWidth
+    function getBreakpoint(breakpoints, vWidth, ignoreLowBandwidth) {
+        var _vWidth = vWidth
           , i = 0
-          , breakpoint, name, minWidth, maxWidth, minDpr;  
+          , breakpoint = {}
+          , _breakpoint, minWidth, maxWidth, minDpr;  
         
-        while (breakpoint = breakpoints[i]) {
-            name     = breakpoint['name'];
-            minWidth = breakpoint['minWidth'];
-            maxWidth = breakpoint['maxWidth'];
-            minDpr   = breakpoint['minDevicePixelRatio'];
+        while (_breakpoint = breakpoints[i]) {
+            minWidth = _breakpoint['minWidth'];
+            maxWidth = _breakpoint['maxWidth'];
+            minDpr   = _breakpoint['minDevicePixelRatio'];
             
             // Viewport width found
             if (vWidth > 0) {
@@ -380,20 +395,19 @@
                     maxWidth && !minWidth && vWidth <= maxWidth) {
                     if (!minDpr || minDpr && devicePixelRatio >= minDpr &&
                         (ignoreLowBandwidth || !ignoreLowBandwidth && !hasLowBandwidth)) {
-                        imgSize = name;
+                        breakpoint = _breakpoint;
                     }
                 }
             // Viewport width not found so let's find the smallest image size
             // (mobile first approach).  
             } else if (_vWidth <= 0 || minWidth < _vWidth || maxWidth < _vWidth) {
                 _vWidth = minWidth || maxWidth || _vWidth;
-                imgSize = name;
+                breakpoint = _breakpoint;
             }
             i++;
         }    
         
-        // Cast to string
-        return imgSize + EMPTYSTRING;
+        return breakpoint;
     }
     
     
@@ -439,7 +453,7 @@
      * Returns the URL of an image
      * If reload is TRUE, a timestamp is added to avoid caching.
      */
-    function getImageSrc(img, base, imgSize, reload) {
+    function getImageSrc(img, base, breakpointName, reload) {
         var src = (img.getAttribute('data-base') || base) +
             (img.getAttribute('data-src') || EMPTYSTRING);
         
@@ -448,7 +462,7 @@
                 'riloadrts='+(new Date).getTime();
         }
 
-        return src.replace(BREAKPOINT_NAME_REGEX, imgSize);    
+        return src.replace(BREAKPOINT_NAME_REGEX, breakpointName);    
     }
     
     

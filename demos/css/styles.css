@@ -1,5 +1,9 @@
 img {
-    max-width: 100% /* To make all images fluid */
+    max-width: 100%; /* To make all images fluid */
+    /* IE8 bug: 
+       Add width:auto for any images inside floated elements without explicit widths. 
+	   See: http://www.456bereastreet.com/archive/201202/using_max-width_on_images_can_make_them_disappear_in_ie8/	
+    */
 }
 .lt-ie8 img {
     -ms-interpolation-mode: bicubic /* IE < 8 does not scale images well */
@@ -11,15 +15,46 @@ img {
 /* Riloadr styles for image groups */
 img.responsive,
 img.group1,
-img.mygroup3 {
+img.mygroup3,
+img.mygroup5 {
     visibility: hidden; /* To make responsive images not visible until loaded. */
     min-height: 100px /* To give responsive images some height until loaded. */
 }
 .no-js img.responsive,
 .no-js img.group1,
-.no-js img.mygroup3 {
+.no-js img.mygroup3,
+.no-js img.mygroup5 {
     display: none /* To remove responsive images if Javascript is disabled */
 }
+
+/* Demo styles: not revelant */
+
+html, body {
+	font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+}
+body{
+	margin: 10px
+}
+hr {
+	margin: 20px 0;
+}
+p {
+	margin-top:0;
+}
+.info {
+	padding:5px 10px;
+	border: 1px solid blue;
+	background-color: #F4F4FF;
+}
+.explanation {
+	padding:5px 10px;
+	border: 1px solid yellow;
+	background-color: #FDFDE2;
+}
+ul.explanation {
+	list-style-position: inside;
+}
+
 /* Hide buttons */
 button {
     display: none

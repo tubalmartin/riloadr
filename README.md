@@ -1,4 +1,4 @@
-# Riloadr 1.2.0 - May 30, 2012
+# Riloadr 1.3.0 - Aug 6, 2012
 
 A cross-browser framework-independent responsive images loader.
 
@@ -30,6 +30,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Mimics CSS**: Riloadr computes the viewport's width in CSS pixels and finds out the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
 * **One request per image**: Riloadr does not make multiple requests for the same image.
 * **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (faster page load).
+* **Legacy content & multiple image sizes**: A fallbacks system allows you to use Riloadr on any website or webapp. [Learn more about fallbacks](#breakpoints).
 * **Image groups**: You can create different Riloadr objects and configure each one to your needs (i.e. A group for images in the sidebar and another one for images in the main column).
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
 * **Useful callbacks**: Riloadr allows you to attach callbacks for the `onload` and `onerror` image events. You can also set an `oncomplete` callback that fires when all images in a group are completely loaded.
@@ -238,15 +239,20 @@ If `base` is set and an image has a `data-base` attribute, the attribute's value
 
 ***
 
+<a name="breakpoints"></a>
+
 ### breakpoints (*Array* | Required)  
 The `breakpoints` array works in a similar way to media queries in CSS.  
 You can configure as many breakpoints (or size ranges) as you need, just like with media queries.  
-A breakpoint is a literal object with up to 4 properties:  
+A breakpoint is a literal object with up to 4 properties:
 
 * `name` (*String|Integer* | Required): The breakpoint name. You can set the name you prefer for any breakpoint.
 * `minWidth` (*Integer* | Optional): Equivalent to `min-width` in CSS media queries. Value should be expressed in CSS pixels.
 * `maxWidth` (*Integer* | Optional): Equivalent to `max-width` in CSS media queries. Value should be expressed in CSS pixels.
-* `minDevicePixelRatio` (*Float* | Optional): Equivalent to `min-device-pixel-ratio` in CSS media queries (useful for delivering high resolution images). If two breakpoints only differ by this property, the breakpoint containing this property should be placed in the last place. 
+* `minDevicePixelRatio` (*Float* | Optional): Equivalent to `min-device-pixel-ratio` in CSS media queries (useful for delivering high resolution images). If two breakpoints only differ by this property, the breakpoint containing this property should be placed in the last place.
+* `fallback` (*String|Integer* | Optional): An already defined breakpoint `name` to use as a fallback in case the current image size does not exist. Use this feature when an image of a certain size may not exist. Fallbacks do not cascade. Typical use scenarios: 
+    * You want to use Riloadr in a website with legacy content (images).
+    * You want to use Riloadr in a website where users can upload images that are resized on the server but, depending on the original image size, not all sizes of an image may be created (Flickr for example).
 
 **The `{breakpoint-name}` variable**
 
@@ -352,6 +358,30 @@ Example 4: Let's suppose you want to use Riloadr only to lazy load some images a
     <img class="lazy" data-src="children.jpg">
     <img class="lazy" data-src="subdirectory/canada.jpg">
     <img class="lazy" data-base="http://photos.myoldserver.com/" data-src="sydney.jpg">
+```
+<a name="feature-fallback"></a>
+Example 5: How to use fallbacks 
+
+```js
+    var group5 = new Riloadr({
+        breakpoints: [
+            {name: 's', maxWidth: 320}, // All images at this size exist.
+            {name: 'm', minWidth: 321, maxWidth: 480, fallback: 's'}, // Some images at this size may not exist so set a fallback to 's' size.
+            {name: 'xl', minWidth: 481, maxWidth: 640} // All images at this size exist.
+            {name: 'xxl', minWidth: 641, fallback: 'xl'} // Some images at this size may not exist so set a fallback to 'xl' size.
+        ]
+    });
+```
+
+```html
+    <!-- 
+        The final URL for this image will be one of these:
+        - ../Hollywood-s.jpg
+        - ../Hollywood-m.jpg
+        - ../Hollywood-xl.jpg
+        - ../Hollywood-xxl.jpg
+    -->
+    <img class="responsive" data-src="../Hollywood-{breakpoint-name}.jpg">
 ```
 
 **Important!**:   
@@ -680,6 +710,12 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 <a name="changelog"></a>
 
 ## 6. Changelog
+
+### 1.3.0
+
+* Added a `fallback` optional property to breakpoints. [See example](#feature-fallback)
+* Updated curl.js and RequireJS
+* Improved demos
 
 ### 1.2.0
 

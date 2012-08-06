@@ -1,6 +1,6 @@
 /*
  * Demo Module
- * Compatible with Require.js, curl.js and browser globals.
+ * Compatible with Require.js v1.x & v2.x, curl.js and browser globals.
  */
 !function(fn) {
     // AMD
@@ -55,7 +55,6 @@
 
     var onerror = function(){
         console.log("Failed loading image '" + this.alt + "'!");
-        console.log('Riloadr will try to reload this image one more time.');
     };
 
     // Image groups
@@ -115,6 +114,21 @@
             {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
             {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
             {name: 640, minWidth: 321} /* Viewports wider than 320px */
+        ]
+    });
+
+    var group5 = new Riloadr({
+        name: 'mygroup5',
+        base: 'images/{breakpoint-name}/',
+        onload: onload,
+        onerror: onerror,
+        oncomplete: function() {
+            console.log("All images in Group 5 are loaded");
+        },
+        retries: 1,
+        breakpoints: [
+            {name: 320, maxWidth: 320}, 
+            {name: 480, minWidth: 321, fallback: 320} // There's no '480' folder so a 320px fallback will be used (if viewport is wider than 320px)
         ]
     });
     

@@ -39,6 +39,9 @@
     
     
     <h2>Group 1</h2>
+    <p class="explanation">
+        Images load as soon as the DOM is ready.
+    </p>
     <p>
         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
     </p>
@@ -61,9 +64,15 @@
         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
     </p>
   
-  
+    <hr>
    
     <h2>Group 2</h2>
+    <ul class="explanation">
+        <li>Images load when the user is likely to see them (above the fold).</li>
+        <li><code>foldDistance: 120</code> (px)</li>
+        <li><code>retries: 1</code></li>
+        <li><code>riload()</code> method testing.</li>
+    </ul>
     <div id="group2">
         <p>
             <img class="responsive" alt="responsive - Cocoa Beach" data-src="cocoa.jpg">
@@ -93,9 +102,14 @@
     </div>
     
     
-    
+    <hr>
     
     <h2>Group 3</h2>
+    <ul class="explanation">
+        <li>Images load once the window has fully loaded (window.onload)</li>
+        <li><code>ignoreLowBandwidth: true</code></li>
+        <li><code>retries: 1</code></li>
+    </ul>
     <p>
         <img class="mygroup3" alt="mygroup3 - Tahiti" data-src="tahiti.jpg">
         <noscript>
@@ -112,10 +126,35 @@
         </noscript>
     </p>
     
-    
+    <hr>
     
     <h2>Group 4</h2>
+    <ul class="explanation">
+        <li>Images load as soon as they are added to the DOM.</li>
+        <li><code>riload()</code> method testing.</li>
+    </ul>
     <div id="group4"></div>
     <button id="group4-button" type="button">Add images to group 4</button>
+
+    <hr>
+
+    <h2>Group 5</h2>
+    <ul class="explanation">
+        <li><code>fallback</code> property testing</li>
+        <li><code>retries: 1</code></li>
+    </ul>
+    <p>
+        <img class="mygroup5" alt="mygroup5 - Tahiti" data-src="tahiti.jpg">
+        <noscript>
+            <img alt="Tahiti" src="images/320/tahiti.jpg">
+        </noscript>
+    </p>
+    <p>
+        <img class="mygroup5" alt="mygroup5 - Morro Rocks" data-src="morro.jpg">
+        <noscript>
+            <img alt="Morro Rocks" src="images/320/morro.jpg">
+        </noscript>
+    </p>
+
 </body>
 </html>
