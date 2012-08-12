@@ -8,7 +8,7 @@
         var usejQuery = 'usejQueryVersion' in window && define.amd.jQuery,
             riloadrFileName = usejQuery ? 'riloadr.jquery' : 'riloadr',
             cfg = {
-                paths: {'jquery': 'https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min'}
+                paths: {'jquery': 'http://code.jquery.com/jquery-1.8.0.min'}
             };
         
         // RequireJS

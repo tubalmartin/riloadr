@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.3.0 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.3.1 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -52,6 +52,7 @@
       , win = window
       , doc = win.document
       , docElm = doc.documentElement
+      , setTimeout = win.setTimeout
 
         // Event model
       , w3c = ADDEVENTLISTENER in doc
@@ -355,7 +356,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.3.0';
+    Riloadr.version = '1.3.1';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -608,24 +609,19 @@
     
     
     /*
-     * onDomReady.js 1.0 (c) 2012 Tubal Martin - MIT license
+     * onDomReady.js 1.1 (c) 2012 Tubal Martin - MIT license
      * https://github.com/tubalmartin/ondomready
      * Notes:
      * - Slightly adapted for Riloadr
      * - Compatible with async script loading
      */
     onDomReady = (function(){
-        var DOMContentLoaded = 'DOMContentLoaded'
-          , toplevel = FALSE
-            
+        var DOMCONTENTLOADED = 'DOMContentLoaded'
+          , top = FALSE
+            // isReady: Is the DOM ready to be used? Set to true once it occurs.
+          , isReady = FALSE  
             // Callbacks pending execution until DOM is ready
-          , callbacks = []
-            
-            // Is the DOM ready to be used? Set to true once it occurs.
-          , isReady = FALSE
-            
-            // The document ready event handler
-          , DOMContentLoadedHandler;
+          , callbacks = [];
         
         // Handle when the DOM is ready
         function ready( fn ) {
@@ -644,48 +640,30 @@
                 }   
             }
         }
-        
-        // The DOM ready check for Internet Explorer
-        function doScrollCheck() {
-            if ( !isReady ) {
-                try {
-                    // If IE is used, use the trick by Diego Perini
-                    // http://javascript.nwbox.com/IEContentLoaded/
-                    docElm.doScroll('left');
-                } catch(e) {
-                    return defer( doScrollCheck );
-                }
-            
-                // and execute any waiting functions
+
+        // The document ready event handler
+        function DOMContentLoadedHandler() {
+            if ( w3c || doc[READYSTATE] === COMPLETE ) {
+                removeEvent( doc, w3c ? DOMCONTENTLOADED : READYSTATECHANGE, DOMContentLoadedHandler );
                 ready();
             }
         }
         
         // Attach the listeners:
+
         // Catch cases where onDomReady is called after the
         // browser event has already occurred.
-        if ( doc[READYSTATE] === COMPLETE ) {
-            ready();
+        if ( doc[READYSTATE] === COMPLETE  || ( doc[READYSTATE] !== 'loading' && w3c ) ) {
+            // Handle it asynchronously to allow scripts the opportunity to delay ready
+            defer( ready );
         } else {
             // W3C event model
-            if ( doc[ADDEVENTLISTENER] ) {
-                DOMContentLoadedHandler = function() {
-                    removeEvent( doc, DOMContentLoaded, DOMContentLoadedHandler );
-                    ready();
-                };
-                
+            if ( w3c ) {                
                 // Use the handy event callback
-                addEvent( doc, DOMContentLoaded, DOMContentLoadedHandler );
+                addEvent( doc, DOMCONTENTLOADED, DOMContentLoadedHandler );
         
             // IE event model
-            } else if ( doc[ATTACHEVENT] ) {
-                DOMContentLoadedHandler = function() {
-                    if ( doc[READYSTATE] === COMPLETE ) {
-                        removeEvent( doc, READYSTATECHANGE, DOMContentLoadedHandler );
-                        ready();
-                    }
-                };
-                
+            } else if ( doc[ATTACHEVENT] ) {                
                 // ensure firing before onload,
                 // maybe late but safe also for iframes
                 addEvent( doc, READYSTATECHANGE, DOMContentLoadedHandler );
@@ -693,11 +671,24 @@
                 // If IE and not a frame
                 // continually check to see if the document is ready
                 try {
-                    toplevel = win.frameElement == NULL;
+                    top = win.frameElement == NULL && docElem;
                 } catch(e) {}
-        
-                if ( docElm.doScroll && toplevel ) {
-                    doScrollCheck();
+
+                if ( top && top.doScroll ) {
+                    (function doScrollCheck() {
+                        if ( !isReady ) {
+                            try {
+                                // Use the trick by Diego Perini
+                                // http://javascript.nwbox.com/IEContentLoaded/
+                                top.doScroll('left');
+                            } catch(e) {
+                                return setTimeout( doScrollCheck, 50 );
+                            }
+
+                            // and execute any waiting functions
+                            ready();
+                        }
+                    })();
                 }
             }
             
@@ -721,11 +712,11 @@
         // Catch cases where onWindowReady is called after 
         // the browser event has already occurred.
         if (doc[READYSTATE] === COMPLETE) {
-            fn();
+            defer(fn);
         } else {
             var _fn = function() {
                 removeEvent(win, LOAD, _fn);
-                fn();
+                defer(fn);
             };
             addEvent(win, LOAD, _fn);
         }    

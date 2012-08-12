@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.3.0 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.3.1 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -45,6 +45,7 @@
       , win = window
       , doc = win.document
       , docElm = doc.documentElement
+      , setTimeout = win.setTimeout
       
         // Event model
       , w3c = ADDEVENTLISTENER in doc
@@ -339,7 +340,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.3.0';
+    Riloadr.version = '1.3.1';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
