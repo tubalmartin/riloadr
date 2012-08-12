@@ -711,6 +711,12 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 ## 6. Changelog
 
+### 1.3.1
+
+* ondomready.js updated to version 1.1 (jQuery 1.8.0)
+* Some bytes saved
+* jQuery 1.8.0 used in demos 
+
 ### 1.3.0
 
 * Added a `fallback` optional property to breakpoints. [See example](#feature-fallback)
