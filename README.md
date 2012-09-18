@@ -1,4 +1,4 @@
-# Riloadr 1.3.1 - Aug 12, 2012
+# Riloadr 1.3.2 - Sep 18, 2012
 
 A cross-browser framework-independent responsive images loader.
 
@@ -716,6 +716,10 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 <a name="changelog"></a>
 
 ## 6. Changelog
+
+### 1.3.2
+
+* ondomready.js updated to version 1.2 (jQuery 1.8.1)
 
 ### 1.3.1
 
