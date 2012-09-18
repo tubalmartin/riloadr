@@ -85,6 +85,8 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
     
     <!-- Recommended CSS styles --> 
     <style type="text/css">
+        /* General styles */
+
         img {
             max-width: 100% /* To make all images fluid */
         }
@@ -94,15 +96,19 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         .lt-ie7 img{
             width: 100% /* IE < 7 does not support max-width. Use a container. */
         }
-        /* Riloadr styles for image groups: assumes <noscript> technique is used */
+
+        /* Image groups styles */
+
+        /* Remove responsive images if Javascript is disabled. Assumes <noscript> technique is used */
+        .no-js img.responsive,
+        .no-js img.main-col-images {
+            display: none 
+        }
+        /* Recommended styles if you plan to defer the load of some images. Recommended specially if "belowfold" defer mode is used. */
         img.responsive, 
         img.main-col-images {
             visibility: hidden; /* To make responsive images not visible until loaded. */
-            min-height: 100px /* To give responsive images some height until loaded. */
-        }
-        .no-js img.responsive,
-        .no-js img.main-col-images {
-            display: none /* To remove responsive images if Javascript is disabled */
+            min-height: 100px /* To give responsive images some height until loaded (smaller "jumps" when loaded). Set it to the height of the smallest image in a group. */
         }
     </style>
     

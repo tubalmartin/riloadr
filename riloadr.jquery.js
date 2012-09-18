@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.3.1 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.3.2 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -340,7 +340,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.3.1';
+    Riloadr.version = '1.3.2';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------

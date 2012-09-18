@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.3.1 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.3.2 (c) 2012 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -356,7 +356,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.3.1';
+    Riloadr.version = '1.3.2';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -609,7 +609,7 @@
     
     
     /*
-     * onDomReady.js 1.1 (c) 2012 Tubal Martin - MIT license
+     * onDomReady.js 1.2 (c) 2012 Tubal Martin - MIT license
      * https://github.com/tubalmartin/ondomready
      * Notes:
      * - Slightly adapted for Riloadr
@@ -651,19 +651,21 @@
         
         // Attach the listeners:
 
-        // Catch cases where onDomReady is called after the
-        // browser event has already occurred.
-        if ( doc[READYSTATE] === COMPLETE  || ( doc[READYSTATE] !== 'loading' && w3c ) ) {
+        // Catch cases where onDomReady is called after the browser event has already occurred.
+        // we once tried to use readyState "interactive" here, but it caused issues like the one
+        // discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
+        if ( doc[READYSTATE] === COMPLETE ) {
             // Handle it asynchronously to allow scripts the opportunity to delay ready
             defer( ready );
+
         } else {
-            // W3C event model
+            // Standards-based browsers support DOMContentLoaded    
             if ( w3c ) {                
                 // Use the handy event callback
                 addEvent( doc, DOMCONTENTLOADED, DOMContentLoadedHandler );
         
-            // IE event model
-            } else if ( doc[ATTACHEVENT] ) {                
+            // If IE event model is used
+            } else {                
                 // ensure firing before onload,
                 // maybe late but safe also for iframes
                 addEvent( doc, READYSTATECHANGE, DOMContentLoadedHandler );
