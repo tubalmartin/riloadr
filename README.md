@@ -253,7 +253,7 @@ If `base` is set and an image has a `data-base` attribute, the attribute's value
 ### breakpoints (*Array* | Required)  
 The `breakpoints` array works in a similar way to media queries in CSS.  
 You can configure as many breakpoints (or size ranges) as you need, just like with media queries.  
-A breakpoint is a literal object with up to 4 properties:
+A breakpoint is a literal object with up to 6 properties:
 
 * `name` (*String|Integer* | Required): The breakpoint name. You can set the name you prefer for any breakpoint.
 * `minWidth` (*Integer* | Optional): Equivalent to `min-width` in CSS media queries. Value should be expressed in CSS pixels.
