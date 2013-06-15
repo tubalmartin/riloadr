@@ -197,8 +197,8 @@
             // Fallback breakpoint
           , fallbackBreakpoint
 
-            // Min & Max breakpoints from those supplied
-          , minAndMaxBreakpoints
+            // Max breakpoint from those supplied
+          , maxBreakpoint
 
           , currentBreakpointIsDifferent
           , currentBreakpointIsWider
@@ -220,33 +220,7 @@
             // If watch mode is enabled & is set to 'wider', test whether the current 
             // breakpoint is equal to the max breakpoint.
             currentBreakpointIsMax = watchViewportEnabled && watchViewportUp && 
-                areBreakpointsEqual(breakpoint, minAndMaxBreakpoints.max);      
-        }
-
-
-        /*
-         * Tests if two breakpoints are equal
-         */
-        function areBreakpointsEqual(a, b) {
-            return a.name === b.name &&
-                   a[MINWIDTH] === b[MINWIDTH] &&
-                   a[MAXWIDTH] === b[MAXWIDTH] && 
-                   a[MINDEVICEPIXELRATIO] === b[MINDEVICEPIXELRATIO] &&
-                   a[IMGFORMAT] === b[IMGFORMAT];
-        }
-
-
-        /*
-         * Tests if breakpoint A is 'wider' than breakpoint B
-         */
-        function isBreakpointWider(a, b) {
-            var aMinDpr = (+a[MINDEVICEPIXELRATIO] || 1)
-              , bMinDpr = (+b[MINDEVICEPIXELRATIO] || 1);
-
-            a = Math.max((+a[MINWIDTH] || 0), (+a[MAXWIDTH] || 0)) * (devicePixelRatio >= aMinDpr ? aMinDpr : 1); 
-            b = Math.max((+b[MINWIDTH] || 0), (+b[MAXWIDTH] || 0)) * (devicePixelRatio >= bMinDpr ? bMinDpr : 1); 
-
-            return a > b;
+                areBreakpointsEqual(breakpoint, maxBreakpoint);      
         }
 
 
@@ -486,7 +460,7 @@
             $win = $(win);
             body = doc[BODY];
             root = root && $('#'+root) || body;
-            minAndMaxBreakpoints = watchViewportEnabled && getMinAndMaxBreakpoints(breakpoints); 
+            maxBreakpoint = watchViewportEnabled && getMaxBreakpoint(breakpoints); 
             setVwidthAndBreakpoints();
 
             // Add event listeners
@@ -565,47 +539,19 @@
 
 
     /*
-     * Returns the min & max breakpoints from those supplied.
+     * Returns the widest/max breakpoint from those supplied.
      */
-    function getMinAndMaxBreakpoints(breakpoints) {
-        var i = 0 
-          , _maxWidth = 0
-          , _minWidth = Infinity
-          , minBreakpoint = {}
-          , maxBreakpoint = {}
-          , _breakpoint, min, max, minWidth, maxWidth, minDpr;  
-
-        while (_breakpoint = breakpoints[i]) {
-            minWidth = +_breakpoint[MINWIDTH] || 0;
-            maxWidth = +_breakpoint[MAXWIDTH] || 0;
-            minDpr   = +_breakpoint[MINDEVICEPIXELRATIO] || 1;
-
-            // If a breakpoint targets a HiDPi screen & the device has a HiDPi screen
-            // multiply by minDpr to ensure the largest image (breakpoint) is selected.
-            if (devicePixelRatio >= minDpr) {
-                minWidth = minWidth * minDpr;
-                maxWidth = maxWidth * minDpr;
-            }
-
-            // Compute min and max
-            min = minWidth && maxWidth && Math.min(minWidth, maxWidth) || minWidth || maxWidth;
-            max = minWidth && maxWidth && Math.max(minWidth, maxWidth) || maxWidth || minWidth;
-
-            // get Min
-            if (_minWidth > min) {
-                _minWidth = min;  
-                minBreakpoint = _breakpoint;           
-            }    
-
-            // get Max    
-            if (_maxWidth < max) {
-                _maxWidth = max;  
-                maxBreakpoint = _breakpoint;           
+    function getMaxBreakpoint(breakpoints, breakpoint, maxBreakpoint, i) {
+        maxBreakpoint = {};
+        i = 0;  
+        while (breakpoint = breakpoints[i]) {   
+            if (isBreakpointWider( breakpoint, maxBreakpoint )) {  
+                maxBreakpoint = breakpoint;           
             }
             i++;
         }         
 
-        return {min: minBreakpoint, max: maxBreakpoint};
+        return maxBreakpoint;
     }
 
 
@@ -624,6 +570,32 @@
             } 
             i++;
         }
+    }
+
+
+    /*
+     * Tests if two breakpoints are equal
+     */
+    function areBreakpointsEqual(a, b) {
+        return a.name === b.name &&
+               a[MINWIDTH] === b[MINWIDTH] &&
+               a[MAXWIDTH] === b[MAXWIDTH] && 
+               a[MINDEVICEPIXELRATIO] === b[MINDEVICEPIXELRATIO] &&
+               a[IMGFORMAT] === b[IMGFORMAT];
+    }
+
+
+    /*
+     * Tests if breakpoint A is 'wider' than breakpoint B
+     */
+    function isBreakpointWider(a, b) {
+        var aMinDpr = +a[MINDEVICEPIXELRATIO] || 1
+          , bMinDpr = +b[MINDEVICEPIXELRATIO] || 1;
+
+        a = Math.max(+a[MINWIDTH] || 0, +a[MAXWIDTH] || 0) * (devicePixelRatio >= aMinDpr ? aMinDpr : 1); 
+        b = Math.max(+b[MINWIDTH] || 0, +b[MAXWIDTH] || 0) * (devicePixelRatio >= bMinDpr ? bMinDpr : 1); 
+
+        return a > b;
     } 
     
     
