@@ -41,6 +41,7 @@ hr {
 p {
 	margin-top:0;
 }
+
 .info {
 	padding:5px 10px;
 	border: 1px solid blue;
@@ -58,4 +59,19 @@ ul.explanation {
 /* Hide buttons */
 button {
     display: none
+}
+
+#horizontal-gallery {
+	width:700px;
+	margin: 0 auto;
+	overflow:scroll;
+}
+#horizontal-gallery ul{
+	list-style:none; 
+	display:block;
+	white-space:nowrap;
+}
+#horizontal-gallery li{
+	width: 640px;
+	display:inline;
 }

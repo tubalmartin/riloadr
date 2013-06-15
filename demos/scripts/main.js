@@ -8,7 +8,7 @@
         var usejQuery = 'usejQueryVersion' in window && define.amd.jQuery,
             riloadrFileName = usejQuery ? 'riloadr.jquery' : 'riloadr',
             cfg = {
-                paths: {'jquery': 'http://code.jquery.com/jquery-1.8.0.min'}
+                paths: {'jquery': 'http://code.jquery.com/jquery-1.10.1.min'}
             };
         
         // RequireJS
@@ -129,6 +129,85 @@
         breakpoints: [
             {name: 320, maxWidth: 320}, 
             {name: 480, minWidth: 321, fallback: 320} // There's no '480' folder so a 320px fallback will be used (if viewport is wider than 320px)
+        ]
+    });
+
+    // Testing the imgFormat option
+    var group6 = new Riloadr({
+        name: 'mygroup6',
+        base: 'images/{breakpoint-name}/',
+        onload: function(){
+            console.log("'" + this.alt + "' image loaded! Format: " + this.src.split('/').pop());
+        },
+        onerror: onerror,
+        breakpoints: [
+            {name: 240, maxWidth: 320, imgFormat: 'gif'}, // Serve the .gif version instead of the .jpg one 
+            {name: 640, maxWidth: 640, imgFormat: 'png'}, // Serve the .png version instead of the .jpg one
+            {name: 640, minWidth: 641, imgFormat: 'jpg'} // Viewports wider than 640px. Serve the .jpg version
+        ]
+    });
+
+    // Testing all new defer option & invisible mode
+    var group7 = new Riloadr({
+        name: 'group7',
+        base: 'images/{breakpoint-name}/',
+        defer: {
+            mode: 'invisible',
+            threshold: 50,
+            overflownElemsIds: ['horizontal-gallery']
+        },
+        onload: onload,
+        onerror: onerror,
+        oncomplete: function() {
+            console.log("All images in Group 7 are loaded");
+        },
+        breakpoints: [
+            {name: 240, maxWidth: 240},
+            {name: 320, minWidth: 241, maxWidth: 320},
+            {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+            {name: 640, minWidth: 321}
+        ]
+    });
+
+    // Testing defer & watchViewportWidth 'wider'
+    var group8 = new Riloadr({
+        name: 'group8',
+        base: 'images/{breakpoint-name}/',
+        defer: {
+            mode: 'invisible'
+        },
+        watchViewportWidth: 'wider',
+        onload: onload,
+        onerror: onerror,
+        oncomplete: function() {
+            console.log("All images in Group 8 are loaded");
+        },
+        breakpoints: [
+            {name: 240, maxWidth: 240},
+            {name: 320, minWidth: 241, maxWidth: 400},
+            {name: 640, minWidth: 401, maxWidth: 640},
+            {name: 1024, minWidth: 641}
+        ]
+    });
+
+    // Testing defer & watchViewportWidth '*'
+    var group9 = new Riloadr({
+        name: 'group9',
+        base: 'images/{breakpoint-name}/',
+        defer: {
+            mode: 'invisible'
+        },
+        watchViewportWidth: '*',
+        onload: onload,
+        onerror: onerror,
+        oncomplete: function() {
+            console.log("All images in Group 9 are loaded");
+        },
+        breakpoints: [
+            {name: 240, maxWidth: 240},
+            {name: 320, minWidth: 241, maxWidth: 400},
+            {name: 640, minWidth: 401, maxWidth: 640},
+            {name: 1024, minWidth: 641}
         ]
     });
     

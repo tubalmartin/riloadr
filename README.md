@@ -1,4 +1,4 @@
-# Riloadr 1.3.2 - Sep 18, 2012
+# Riloadr 1.4.0 - Jun 14, 2013
 
 A cross-browser framework-independent responsive images loader.
 
@@ -26,10 +26,11 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **No dependencies**: Just Javascript, HTML and CSS (No server involved if you don't want to, no cookies, no .htaccess, no other Javascript library or framework required).
 * **Ease of use**: 15-30 mins reading the docs and checking some demos and you're good to go! 
 * **Absolute control**: Riloadr will process only the images you tell it to.
-* **Unlimited breakpoints**: Set the breakpoints you need. CSS properties available per breakpoint: `minWidth`, `maxWidth` & `minDevicePixelRatio`.
+* **Unlimited breakpoints**: Set the breakpoints you need. CSS properties available per breakpoint: `minWidth`, `maxWidth`, `minDevicePixelRatio` (plus `fallback` and `imgFormat`).
 * **Mimics CSS**: Riloadr computes the viewport's width in CSS pixels and finds out the optimal image size for the viewport according to the breakpoints you set through the `breakpoints` option (sort of CSS media queries).
 * **One request per image**: Riloadr does not make multiple requests for the same image.
-* **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (faster page load).
+* **Lazy load of images**: Riloadr gives you the option to defer the load of all images in a group (much better page load times).
+* **Full Art Direction**: See `watchViewportWidth` option in the documentation.
 * **Legacy content & multiple image sizes**: A fallbacks system allows you to use Riloadr on any website or webapp. [Learn more about fallbacks](#breakpoints).
 * **Image groups**: You can create different Riloadr objects and configure each one to your needs (i.e. A group for images in the sidebar and another one for images in the main column).
 * **Image retries**: You can configure any Riloadr object to retry *n* times the loading of an image if it failed to load.
@@ -37,7 +38,7 @@ The goal of this library is to deliver optimized, contextual image sizes in resp
 * **Bandwidth testing**: Riloadr uses the W3C Network Api to find out wether connection speed is fast enough to deliver Hi-Res images (can be disabled). 
 * **Support for browsers with no Javascript support or Javascript disabled**: Use the `noscript` tag OR add and set the `src` attribute with the smallest image (the latter approach may make 2 requests instead of 1, not recommended).
 * **No UA sniffing**: Riloadr does not use device detection through user-agents.
-* **Lightweight**: 4.1kb minified (3.4kb jQuery version minified)
+* **Lightweight**: 6.4kb minified (5.2kb jQuery version minified)
 * **jQuery version available**
 * **AMD compatible**
 * **MIT License**
@@ -104,7 +105,7 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
         .no-js img.main-col-images {
             display: none 
         }
-        /* Recommended styles if you plan to defer the load of some images. Recommended specially if "belowfold" defer mode is used. */
+        /* Recommended styles if you plan to defer the load of some images. Recommended specially if "invisible" ("belowfold" until 1.4.0) defer mode is used. */
         img.responsive, 
         img.main-col-images {
             visibility: hidden; /* To make responsive images not visible until loaded. */
@@ -136,15 +137,17 @@ I'll use some code to explain how to use Riloadr, it should be self explanatory.
          * All options: 
          * - The group's name will be 'main-col-images' and the root will be the <div id="main-column"> element.
          * - The base URL for each image is already set so you don't need to include it in each <img> tag.
-         * - Images will load when the user is likely to see them (above the fold).
+         * - Images will load when the user is likely to see them.
          * - If an image in this group fails to load, Riloadr will try to load it 1 more time.
          */
         var group2 = new Riloadr({
             root: 'main-column', // ID
             name: 'main-col-images',
             base: 'images/{breakpoint-name}/', // {breakpoint-name} will be replaced by one of your breakpoints names
-            defer: 'belowfold',
-            foldDistance: 125,
+            defer: {
+                mode: 'invisible',
+                threshold: 125
+            },
             ignoreLowBandwidth: true, // Hi-Res images will be requested regardless of connection speed
             onload: function(){
                 // Image x is loaded
@@ -259,6 +262,7 @@ A breakpoint is a literal object with up to 4 properties:
 * `fallback` (*String|Integer* | Optional): An already defined breakpoint `name` to use as a fallback in case the current image size does not exist. Use this feature when an image of a certain size may not exist. Fallbacks do not cascade. Typical use scenarios: 
     * You want to use Riloadr in a website with legacy content (images).
     * You want to use Riloadr in a website where users can upload images that are resized on the server but, depending on the original image size, not all sizes of an image may be created (Flickr for example).
+* `imgFormat` (*String* | Optional): You can set a different image file format such as `png` or `jpeg` regardless of the initial image file format you set in the `data-src` attribute. Riloadr will replace the image extension with this one. Just don't include the dot `.`.   
 
 **The `{breakpoint-name}` variable**
 
@@ -383,9 +387,30 @@ Example 5: How to use fallbacks
     <!-- 
         The final URL for this image will be one of these:
         - ../Hollywood-s.jpg
-        - ../Hollywood-m.jpg
+        - ../Hollywood-m.jpg or ../Hollywood-s.jpg
         - ../Hollywood-xl.jpg
-        - ../Hollywood-xxl.jpg
+        - ../Hollywood-xxl.jpg or ../Hollywood-xl.jpg
+    -->
+    <img class="responsive" data-src="../Hollywood-{breakpoint-name}.jpg">
+```
+
+<a name="feature-imgformat"></a>
+Example 5: How to use `imgFormat` 
+
+```js
+    var group5 = new Riloadr({
+        breakpoints: [
+            {name: 's', maxWidth: 240, imgFormat: 'png'}, // PNG images
+            {name: 'm', minWidth: 241, maxWidth: 320, imgFormat: 'jpg'} // JPG images
+        ]
+    });
+```
+
+```html
+    <!-- 
+        The final URL for this image will be one of these regardless of the extension set in data-src:
+        - ../Hollywood-s.png
+        - ../Hollywood-m.jpg
     -->
     <img class="responsive" data-src="../Hollywood-{breakpoint-name}.jpg">
 ```
@@ -403,35 +428,33 @@ This is the value that you should set as `minWidth` to target the iPhone 3 & 4 (
 
 ***
 
-### defer (*String* | Optional)  
-Tells Riloadr to defer the load of images.  
-Two values available:  
+### defer (*Object* | Optional)  
+Tells Riloadr to defer the load of some images.  
+Three properties available:  
 
-* `load`: Images in a group will be loaded once the window has fully loaded (window.onload).
-* `belowfold`: Images in a group will load when the user is likely to see them (above the fold).
-
-```js
-    var group1 = new Riloadr({
-        defer: 'belowfold'
-    });
-```
-
-If `belowfold` mode is set and Opera Mini is used, Riloadr falls back to `load`.  
-If `belowfold` mode is set and the browser does not support the `getBoundingClientRect` method, Riloadr falls back to `load`. This rule does not apply to the jQuery version. 
-
-***
-
-### foldDistance (*Integer* | Optional)  
-A group can check its images at the DOM ready state and immediately begin loading those that are above the fold (i.e., inside the current viewport) while delaying the load of those that aren't. Just set a value (in pixels) for the `foldDistance` property of the group. Images are checked and loaded in a cascading fashion. That is, each image will be loaded only when it comes within `foldDistance` pixels of the bottom of the viewport. The effect is that images are loaded as needed as the user scrolls down the page. When you set a `foldDistance`, the group automatically gets window `scroll`, `resize` and `orientationchange` triggers.
+* `mode` (*String* | Required):
+    * `'invisible'`: Images in a group will load when the user is likely to see them (images in the viewport area). Before version 1.4.0, Riloadr only supported the deferred load of images that were "below the fold" but from version 1.4.0 onwards, Riloadr employs a much friendlier bandwidth approach meaning it will only load those images inside the current viewport, thus images outside of the viewport (up, down, left or right) won't get loaded until the user is likely to see them. The image group automatically gets window `scroll`, `resize` and `orientationchange` triggers.
+    * `'load'`: Images in a group will be loaded once the window has fully loaded (window.onload).
+* `threshold` (*Integer* | Optional):  Each image will be loaded only when it comes within `threshold` pixels of any side of the viewport. If `threshold` is not set, it defaults to `100`px. This option works only with the `invisible` mode.
+* `overflownElemsIds` (*Array* | Optional): A list of Ids of elements whose content overflows them. You'll identify these elements in your stylesheet looking for the `overflow` property. If you use the `invisible` mode, please review your stylesheet/html and add those element Ids to this list. This property exists because the `scroll` event does not bubble up and browsers only fire a `scroll` event on `document` and `window` when the user scrolls the entire page. Scrolling overflown content triggers the `scroll` event but it does not bubble up so Riloadr has to know which elements are overflown so that it can register an event listener to them.   
 
 ```js
     var group1 = new Riloadr({
-        defer: 'belowfold',
-        foldDistance: 150
+        defer: {
+            mode: 'invisible',
+            threshold: 200,
+            overflownElmsIds: ['img-gallery', 'my-overflown-div']
+        }
+    });
+
+    var group2 = new Riloadr({
+        defer: {
+            mode: 'load'
+        }
     });
 ```
 
-If `foldDistance` is not set, it defaults to `100`px.  
+If `mode` is set to `invisible` and Opera Mini is used, Riloadr falls back to `load` mode. 
 
 ***
 
@@ -636,6 +659,18 @@ If `root` is not set or can't be found, it falls back to the `body` element.
 
 ***
 
+### watchViewportWidth (*String* | Optional)  
+Enables dynamic Art Direction. 
+Ever wished to load different image sizes when users resize their browser? Now you can easily: Define your breakpoints, set `watchViewportWidth` to the mode you prefer and voilá! 
+Riloadr provides two different modes of dynamic Art Direction:
+
+* `wider`: Loads larger images as the browser is resized up (One way). Riloadr finds out the widest breakpoint from those you defined for a group and will load larger images as the browser is resized up. When the widest breakpoint is used (largest images get displayed) Riloadr stops watching the viewport meaning images of smaller size won't be loaded.
+* `*`: Loads smaller or larger images as the browser is resized down or up respectively (Both ways).
+
+Don't be afraid of enabling this option for mobile devices: Mobile browsers cannot be resized although some of them fire the resize event when certain actions occur but the viewport width isn't likely to change (and that's what matters to Riloadr) so it's safe to assume this setting targets desktop browsers only.
+
+***
+
 <a name="properties"></a>
 
 ## 2.2. Properties
@@ -717,6 +752,13 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 ## 6. Changelog
 
+### 1.4.0
+
+* NEW `watchViewportWidth` option that enables dynamic Art Direction.
+* NEW `imgFormat` breakpoint option. [See example](#feature-imgformat)
+* NEW `invisible` mode for deferring the load of images.
+* ondomready.js updated to version 1.3 (jQuery 1.10.1)
+
 ### 1.3.2
 
 * ondomready.js updated to version 1.2 (jQuery 1.8.1)
@@ -790,7 +832,7 @@ Find a bug? Please create an issue here on GitHub!
 
 ## 9. License
 
-Copyright (c) 2012 Tubal Martin
+Copyright (c) 2013 Tubal Martin
 
 Licensed under the [MIT license](https://github.com/tubalmartin/riloadr/blob/master/LICENSE.txt).
 

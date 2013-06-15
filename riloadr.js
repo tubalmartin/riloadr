@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.3.2 (c) 2012 Tubal Martin - MIT license
+ * Riloadr.js 1.4.0 (c) 2013 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -14,7 +14,10 @@
     'use strict';
     
     var ON = 'on'
+      , TOP = 'top'
       , TRUE = !0
+      , BODY = 'body'
+      , LEFT = 'left'
       , FALSE = !1
       , DELAY = 250
       , NULL = null
@@ -22,37 +25,49 @@
       , CALL = 'call'
       , APPLY = 'apply'
       , ERROR = 'error'
+      , WIDTH = 'width'
       , EMPTYSTRING = ''
+      , HEIGHT = 'height'
       , LENGTH = 'length'
       , SCROLL = 'scroll'
+      , OFFSET = 'offset'
+      , CLIENT = 'client'
       , RESIZE = 'resize'
       , ONLOAD = ON+LOAD
       , ONERROR = ON+ERROR
       , RETRIES = 'retries'
+      , MINWIDTH = 'minWidth'
+      , MAXWIDTH = 'maxWidth'
       , COMPLETE = 'complete'
       , RILOADED = 'riloaded'
       , FALLBACK = 'fallback'
       , CLASSNAME = 'className'
+      , IMGFORMAT = 'imgFormat'
       , PROTOTYPE = 'prototype'
-      , CLIENTTOP = 'clientTop'
+      , UNDEFINED = 'undefined'
+      , SCROLLTOP = SCROLL+'Top'
       , ONCOMPLETE = ON+COMPLETE
-      , LOADIMAGES = 'loadImages'
       , READYSTATE = 'readyState'
+      , SCROLLLEFT = SCROLL+'Left'
+      , LOADIMAGES = LOAD+'Images'
+      , PAGEYOFFSET = 'pageYOffset'
+      , PAGEXOFFSET = 'pageXOffset'
       , ORIENTATION = 'orientation'
       , ATTACHEVENT = 'attachEvent'
-      , CLIENTHEIGHT = 'clientHeight'
       , EVENTLISTENER = 'EventListener'
+      , GETELEMENTBYID = 'getElementById'
+      , DOCUMENTELEMENT = 'documentElement'
       , READYSTATECHANGE = 'readystatechange'
       , QUERYSELECTORALL = 'querySelectorAll'
       , ADDEVENTLISTENER = 'add'+EVENTLISTENER
       , ORIENTATIONCHANGE = ORIENTATION+'change'
+      , MINDEVICEPIXELRATIO = 'minDevicePixelRatio'
       , GETBOUNDINGCLIENTRECT = 'getBoundingClientRect'
       
       , body
       , win = window
       , doc = win.document
-      , docElm = doc.documentElement
-      , setTimeout = win.setTimeout
+      , docElm = doc[DOCUMENTELEMENT]
 
         // Event model
       , w3c = ADDEVENTLISTENER in doc
@@ -66,12 +81,11 @@
       
         // Feature support
       , selectorsApiSupported = QUERYSELECTORALL in doc
-      , belowfoldSupported = GETBOUNDINGCLIENTRECT in docElm
       , orientationSupported = ORIENTATION in win && ON+ORIENTATIONCHANGE in win
       
         // Screen info 
       , viewportWidth
-      , screenWidth = win.screen.width
+      , screenWidth = win.screen[WIDTH]
       , devicePixelRatio = win.devicePixelRatio || 1
 
         // Bandwidth info (bool)
@@ -112,14 +126,34 @@
           , className = options.name || 'responsive'
           , classNameRegexp = new RegExp('(^|\\s)'+className+'(\\s|$)')
         
-            // Defer load: disabled by default, if enabled falls back to "load". 
-            // Possible values: 'belowfold' & 'load'.
-          , deferMode = options.defer && (options.defer).toLowerCase() || FALSE
+            // defer & foldDistance retro-compatibility definition
+          , deferObj = options.defer && (typeof options.defer == 'string' ? 
+                {'mode': options.defer, 'threshold': options.foldDistance, 'overflownElemsIds': []} :
+                options.defer)
 
-            // Setting foldDistance to n causes image to load n pixels before it is visible.
-            // Falls back to 100px
-          , foldDistance = options.foldDistance || 100
+            // Defer load: disabled by default. If enabled it falls back to "load". 
+            // Possible values: 'invisible', 'belowfold' (deprecated) & 'load'.
+          , deferMode = deferObj && deferObj.mode.toLowerCase()
+
+            // Setting threshold to n causes image to load n pixels before it is visible.
+            // Falls back to 100px.
+          , threshold = deferObj && deferObj.threshold || 100
+
+            // Array of Overflown elements IDs that contain images only visible if user scrolls on that element 
+            // (elements with overflow:auto or overflow(-xy):scroll CSS properties)
+          , overflownElemsIds = deferObj && deferObj.overflownElemsIds
             
+            // Dynamic Art direction. Intended for desktop/large screens.
+            // Mobile browsers cannot be resized although some of them fire the 
+            // resize event when certain actions occur but the viewport width 
+            // isn't likely to change so it's safe to assume this setting targets
+            // desktop browsers only.
+            // Possible values: 'wider', '*'
+          , watchViewportMode = options.watchViewportWidth
+          , watchViewportEnabled = !!watchViewportMode
+          , watchViewportUp = watchViewportMode == 'wider'
+          , watchViewportBoth = watchViewportMode == '*'
+
             // Set to true to deliver Hi-Res images despite connection speed.
             // Defaults to false, meaning connection speed is not ignored so 
             // Hi-Res images will only be requested if connection speed is fast enough.
@@ -132,22 +166,26 @@
             // Id of a DOM node where Riloadr must look for 'responsive' images.
             // Falls back to body if not set.
           , root = options.root || NULL  
-            
-            // 'belowfold' defer mode?
-          , belowfoldEnabled = deferMode === 'belowfold' && belowfoldSupported && !operaMini
+
+            // 'invisible' defer mode? (support 'belowfold' for retro compatibility)
+          , deferInvisibleEnabled = (deferMode == 'invisible' || deferMode == 'belowfold') && !operaMini
           
             // Reduce by 5.5x the # of times loadImages is called when scrolling
-          , scrollListener = belowfoldEnabled && throttle(function() {
+          , scrollListener = deferInvisibleEnabled && throttle(function() {
                 instance[LOADIMAGES]();
             }, DELAY)
 
             // Reduce to 1 the # of times loadImages is called when resizing 
-          , resizeListener = belowfoldEnabled && debounce(function() {
-                instance[LOADIMAGES]();
+          , resizeListener = (deferInvisibleEnabled || watchViewportEnabled) && debounce(function() {
+                // On resize update viewport dependant values if watchViewport mode is enabled
+                watchViewportEnabled && setVwidthAndBreakpoints();
+
+                // Update image list onresize if watchViewport mode is enabled
+                instance[LOADIMAGES]( watchViewportEnabled );
             }, DELAY)
 
             // Reduce to 1 the # of times loadImages is called when orientation changes.  
-          , orientationchangeListener = belowfoldEnabled && debounce(function(){
+          , orientationchangeListener = deferInvisibleEnabled && debounce(function(){
                 if (win[ORIENTATION] !== lastOrientation) {
                     lastOrientation = win[ORIENTATION];
                     instance[LOADIMAGES]();
@@ -163,41 +201,121 @@
             // Breakpoint that applies
           , breakpoint
 
-            // Name of the breakpoint
-          , breakpointName
+            // Previous breakpoint used before a resize event
+          , prevBreakpoint
 
-            // Name of the fallback breakpoint
-          , fallbackBreakpointName; 
+            // Fallback breakpoint
+          , fallbackBreakpoint
+
+            // Min & Max breakpoints from those supplied
+          , minAndMaxBreakpoints
+
+          , currentBreakpointIsDifferent
+          , currentBreakpointIsWider
+          , currentBreakpointIsMax;
+
         
         // PRIVATE METHODS
         // ---------------
         
-        /*
-         * Adds event listeners if defer mode is 'belowfold'
-         * React on scroll, resize and orientationchange events
-         */  
-        function addBelowfoldListeners() {
-            addEvent(win, SCROLL, scrollListener);        
-            addEvent(win, RESIZE, resizeListener);
 
-            // Is orientationchange event supported? If so, let's try to avoid false 
-            // positives by checking if win.orientation has actually changed.
-            if (orientationSupported) {
-                lastOrientation = win[ORIENTATION];
-                addEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
-            }    
+        /*
+         * Sets viewportWidth, breakpoint, fallbackBreakpoint & currentBreakpointIsMax vars
+         */ 
+        function setVwidthAndBreakpoints() {
+            viewportWidth = getViewportWidthInCssPixels(); 
+            breakpoint = getBreakpoint(breakpoints, viewportWidth, ignoreLowBandwidth);
+            fallbackBreakpoint = getFallbackBreakpoint(breakpoints, breakpoint[FALLBACK]);
+
+            // If watch mode is enabled & is set to 'wider', test whether the current 
+            // breakpoint is equal to the max breakpoint.
+            currentBreakpointIsMax = watchViewportEnabled && watchViewportUp && 
+                areBreakpointsEqual(breakpoint, minAndMaxBreakpoints.max);      
         }
 
 
         /*
-         * Removes event listeners if defer mode is 'belowfold'
-         */  
-        function removeBelowfoldListeners() {
-            removeEvent(win, SCROLL, scrollListener);        
-            removeEvent(win, RESIZE, resizeListener);
+         * Tests if two breakpoints are equal
+         */
+        function areBreakpointsEqual(a, b) {
+            return a.name === b.name &&
+                   a[MINWIDTH] === b[MINWIDTH] &&
+                   a[MAXWIDTH] === b[MAXWIDTH] && 
+                   a[MINDEVICEPIXELRATIO] === b[MINDEVICEPIXELRATIO] &&
+                   a[IMGFORMAT] === b[IMGFORMAT];
+        }
 
-            // Is orientationchange event supported? If so, remove the listener 
-            orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
+
+        /*
+         * Tests if breakpoint A is 'wider' than breakpoint B
+         */
+        function isBreakpointWider(a, b) {
+            var aMinDpr = (+a[MINDEVICEPIXELRATIO] || 1)
+              , bMinDpr = (+b[MINDEVICEPIXELRATIO] || 1);
+
+            a = Math.max((+a[MINWIDTH] || 0), (+a[MAXWIDTH] || 0)) * (devicePixelRatio >= aMinDpr ? aMinDpr : 1); 
+            b = Math.max((+b[MINWIDTH] || 0), (+b[MAXWIDTH] || 0)) * (devicePixelRatio >= bMinDpr ? bMinDpr : 1); 
+
+            return a > b;
+        } 
+
+
+        /*
+         * Registers event listeners
+         * React on scroll, resize and orientationchange events
+         */  
+        function addEventListeners(current, i) {
+            // Event shared by defer & watchViewport modes        
+            addEvent(win, RESIZE, resizeListener);
+            
+            if (deferInvisibleEnabled) {
+                addEvent(win, SCROLL, scrollListener);
+
+                // Is orientationchange event supported? If so, let's try to avoid false 
+                // positives by checking if win.orientation has actually changed.
+                if (orientationSupported) {
+                    lastOrientation = win[ORIENTATION];
+                    addEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
+                }
+
+                // Scroll events on overflown elements
+                if (overflownElemsIds) {
+                    i = 0;
+                    while (current = overflownElemsIds[i]) {
+                        addEvent(doc[GETELEMENTBYID](current), SCROLL, scrollListener);
+                        i++;
+                    }  
+                }
+            }
+        }
+
+
+        /*
+         * Removes event listeners
+         */  
+        function removeEventListeners(current, i) {
+            // Only remove the resize event if watchViewport mode is disabled/done
+            if ( ! watchViewportEnabled ) {
+                removeEvent(win, RESIZE, resizeListener);
+            }
+
+            // Only remove the scroll/orientation events if defer 'invisible' mode
+            // is enabled & watchViewport mode is disabled/done
+            if (deferInvisibleEnabled && ! watchViewportEnabled) {
+                removeEvent(win, SCROLL, scrollListener);
+
+                // Scroll events on overflown elements
+                if (overflownElemsIds) {
+                    i = 0;
+                    while (current = overflownElemsIds[i]) {
+                        removeEvent(doc[GETELEMENTBYID](current), SCROLL, scrollListener);
+                        i++;
+                    }
+                } 
+
+                // Is orientationchange event supported? If so, remove the listener 
+                orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
+            }
         }
 
 
@@ -216,7 +334,7 @@
             img[ONERROR] = imageOnerrorCallback;
                     
             // Load it    
-            img.src = getImageSrc(img, base, breakpointName);
+            img.src = getImageSrc(img, base, breakpoint);
             
             // Reduce the images array for shorter loops
             images.splice(idx, 1);
@@ -229,7 +347,8 @@
         function imageOnloadCallback() {
             var img = this;
             img[ONLOAD] = img[ONERROR] = NULL;
-            img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2');
+            img[RILOADED] && (img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2'));
+            deferInvisibleEnabled && (img.style.visibility = 'visible');
             ONLOAD in options && options[ONLOAD][CALL](img);
             onCompleteCallback(); 
         }
@@ -245,11 +364,11 @@
             ONERROR in options && options[ONERROR][CALL](img); 
             if (img[RETRIES] < retries) {
                 img[RETRIES]++;
-                img.src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpointName : breakpointName), TRUE);
+                img.src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpoint : breakpoint), TRUE);
             } else if (FALLBACK in breakpoint && !img[FALLBACK]) {
                 img[RETRIES] = 0;
                 img[FALLBACK] = TRUE;
-                img.src = getImageSrc(img, base, fallbackBreakpointName);
+                img.src = getImageSrc(img, base, fallbackBreakpoint);
             } else {
                 // If an image fails to load consider it loaded.
                 onCompleteCallback();
@@ -263,7 +382,13 @@
          */ 
         function onCompleteCallback() {
             imagesPendingLoad--;
-            imagesPendingLoad == 0 && ONCOMPLETE in options && options[ONCOMPLETE]();
+
+            if (imagesPendingLoad == 0) {
+                // No more images to load? remove event listeners
+                removeEventListeners();
+
+                ONCOMPLETE in options && options[ONCOMPLETE]();
+            } 
         }
 
         // PUBLIC PRIVILEGED METHODS
@@ -278,12 +403,21 @@
          */ 
         instance[LOADIMAGES] = function(update) {
             // Schedule it to run after the current call stack has cleared.
-            defer(function(imageList, current, i){
-                // If initial collection is not done or 
+            defer(function(imageList, current, i) {
+                // If initial collection is not done or watch mode is forced or
                 // new images have been added to the DOM, collect them.
                 if (!images[LENGTH] || update === TRUE) {
-                    // Add event listeners
-                    belowfoldEnabled && addBelowfoldListeners();
+                    
+                    // Add event listeners on update
+                    update && addEventListeners();
+
+                    // This assignments must be placed here so that they are evaluated on any event.
+                    if (watchViewportEnabled && prevBreakpoint) {
+                        // Is current breakpoint equal to previous one?
+                        currentBreakpointIsDifferent = ! areBreakpointsEqual(breakpoint, prevBreakpoint);
+                        // Is current breakpoint wider than previous one?
+                        currentBreakpointIsWider = watchViewportUp && isBreakpointWider(breakpoint, prevBreakpoint);
+                    }
 
                     imageList = selectorsApiSupported && 
                         root[QUERYSELECTORALL]('img.'+className) || 
@@ -296,33 +430,56 @@
                         if (current && !current[RILOADED] &&
                             (selectorsApiSupported || 
                              current[CLASSNAME].indexOf(className) >= 0)) {
-                            // Flag to avoid reprocessing
-                            current[RILOADED] = TRUE;
-                            // Add image to the list
-                            images.push(current);
-                            // Increment counter
-                            imagesPendingLoad++;
+                            
+                            // Push image if:
+                            // - Watch mode is disabled/done
+                            // - Watch mode is enabled and it's the first breakpoint processed or
+                            // - Watch mode 'wider' is enabled and current breakpoint is wider than previous one or
+                            // - Watch mode '*' is enabled and current breakpoint differs from previous one
+                            if (! watchViewportEnabled || 
+                                watchViewportEnabled && (
+                                    ! prevBreakpoint || 
+                                    (watchViewportUp && currentBreakpointIsWider) || 
+                                    (watchViewportBoth && currentBreakpointIsDifferent)
+                                )) {
+                                
+                                // Add image to the list
+                                images.push(current);
+                                // Increment counter
+                                imagesPendingLoad++;
+                            }
+
+                            // Flag images as RILOADED if watch mode is disabled/done or
+                            // if watch mode is 'wider' & current breakpoint matches the max breakpoint    
+                            if ( ! watchViewportEnabled || currentBreakpointIsMax) {
+                                // Flag to avoid reprocessing
+                                current[RILOADED] = TRUE;
+                            }  
                         }
                         i++;
                     }
+
+                    // If watch mode is 'wider' & current breakpoint matches the max breakpoint
+                    // disable watch mode.
+                    currentBreakpointIsMax && (watchViewportEnabled = FALSE);     
+
+                    // Remember the breakpoint used
+                    watchViewportEnabled && (prevBreakpoint = breakpoint);
                 }
                 
                 // Load images
                 if (images[LENGTH]) {
                     i = 0;
                     while (current = images[i]) {
-                        if (current && 
-                            (!belowfoldEnabled || belowfoldEnabled && 
-                             !isBelowTheFold(current, foldDistance))) { 
+                        if (current &&
+                            (!deferInvisibleEnabled || (deferInvisibleEnabled && isInViewport(current, threshold)))
+                        ) { 
                             loadImage(current, i);
                             i--;
                         }
                         i++;
                     }
-                } 
-
-                // No more images to load? remove event listeners
-                belowfoldEnabled && !images[LENGTH] && removeBelowfoldListeners();
+                }
 
                 // Clean up
                 imageList = current = NULL;     
@@ -333,20 +490,21 @@
         // --------------
         
         onDomReady(function(){
-            body = doc.body;
-            root = doc.getElementById(root) || body;
-            viewportWidth = viewportWidth || getViewportWidthInCssPixels(); 
-            breakpoint = getBreakpoint(breakpoints, viewportWidth, ignoreLowBandwidth);
-            breakpointName = breakpoint.name;
-            fallbackBreakpointName = breakpoint[FALLBACK]; 
+            body = doc[BODY];
+            root = doc[GETELEMENTBYID](root) || body;
+            minAndMaxBreakpoints = watchViewportEnabled && getMinAndMaxBreakpoints(breakpoints); 
+            setVwidthAndBreakpoints();
 
-            if (!deferMode || belowfoldEnabled) {
+            // Add event listeners
+            (deferInvisibleEnabled || watchViewportEnabled) && addEventListeners();
+
+            if (!deferMode || deferInvisibleEnabled) {
                 // No defer mode: load all images now! OR 
-                // 'belowfold' mode enabled: Load initial "above the fold" images
+                // 'belowfold'-'invisible' mode enabled: Load initial "visible" images
                 instance[LOADIMAGES](); 
             } else {
                 // defer mode = 'load': Load all images after window is loaded OR 
-                // 'belowfold' not supported: 'load' fallback
+                // 'belowfold'-'invisible' not supported: 'load' fallback
                 onWindowReady(instance[LOADIMAGES]);
             }
         });
@@ -356,7 +514,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.3.2';
+    Riloadr.version = '1.4.0';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -375,7 +533,7 @@
     // ----------------
     
     /*
-     * Returns the breakpoint data to apply.
+     * Returns the breakpoint to apply.
      * Uses the viewport width to mimic CSS behavior.
      */
     function getBreakpoint(breakpoints, vWidth, ignoreLowBandwidth) {
@@ -385,9 +543,9 @@
           , _breakpoint, minWidth, maxWidth, minDpr;  
         
         while (_breakpoint = breakpoints[i]) {
-            minWidth = _breakpoint['minWidth'];
-            maxWidth = _breakpoint['maxWidth'];
-            minDpr   = _breakpoint['minDevicePixelRatio'];
+            minWidth = _breakpoint[MINWIDTH];
+            maxWidth = _breakpoint[MAXWIDTH];
+            minDpr   = _breakpoint[MINDEVICEPIXELRATIO];
             
             // Viewport width found
             if (vWidth > 0) {
@@ -410,6 +568,69 @@
         
         return breakpoint;
     }
+
+
+    /*
+     * Returns the min & max breakpoints from those supplied.
+     */
+    function getMinAndMaxBreakpoints(breakpoints) {
+        var i = 0 
+          , _maxWidth = 0
+          , _minWidth = Infinity
+          , minBreakpoint = {}
+          , maxBreakpoint = {}
+          , _breakpoint, min, max, minWidth, maxWidth, minDpr;  
+
+        while (_breakpoint = breakpoints[i]) {
+            minWidth = +_breakpoint[MINWIDTH] || 0;
+            maxWidth = +_breakpoint[MAXWIDTH] || 0;
+            minDpr   = +_breakpoint[MINDEVICEPIXELRATIO] || 1;
+
+            // If a breakpoint targets a HiDPi screen & the device has a HiDPi screen
+            // multiply by minDpr to ensure the largest image (breakpoint) is selected.
+            if (devicePixelRatio >= minDpr) {
+                minWidth = minWidth * minDpr;
+                maxWidth = maxWidth * minDpr;
+            }
+
+            // Compute min and max
+            min = minWidth && maxWidth && Math.min(minWidth, maxWidth) || minWidth || maxWidth;
+            max = minWidth && maxWidth && Math.max(minWidth, maxWidth) || maxWidth || minWidth;
+
+            // get Min
+            if (_minWidth > min) {
+                _minWidth = min;  
+                minBreakpoint = _breakpoint;           
+            }    
+
+            // get Max    
+            if (_maxWidth < max) {
+                _maxWidth = max;  
+                maxBreakpoint = _breakpoint;           
+            }
+            i++;
+        }         
+
+        return {min: minBreakpoint, max: maxBreakpoint};
+    }
+
+
+    /*
+     * Returns the fallback breakpoint to apply.
+     */
+    function getFallbackBreakpoint(breakpoints, fallbackBreakpointName, current, i) {
+        if (typeof fallbackBreakpointName == UNDEFINED) {
+            return {};
+        }
+
+        i = 0;
+        while (current = breakpoints[i]) {
+            if (current.name == fallbackBreakpointName) {
+                return current; 
+            } 
+            i++;
+        }
+    } 
     
     
     /*
@@ -454,30 +675,23 @@
      * Returns the URL of an image
      * If reload is TRUE, a timestamp is added to avoid caching.
      */
-    function getImageSrc(img, base, breakpointName, reload) {
+    function getImageSrc(img, base, breakpoint, reload) {
         var src = (img.getAttribute('data-base') || base) +
             (img.getAttribute('data-src') || EMPTYSTRING);
+
+        if (breakpoint[IMGFORMAT]) {
+            src = src.split('.');
+            src.pop();
+            src = src.join('.') + '.' + breakpoint[IMGFORMAT];   
+        }    
         
         if (reload) {
             src += (QUESTION_MARK_REGEX.test(src) ? '&' : '?') + 
                 'riloadrts='+(new Date).getTime();
         }
 
-        return src.replace(BREAKPOINT_NAME_REGEX, breakpointName);    
-    }
-    
-    
-    /*
-     * Tells if an image is visible to the user or not.
-     * Thanks to jQuery 
-     */
-    function isBelowTheFold(img, foldDistance) {
-        var clientTop = docElm[CLIENTTOP] || body[CLIENTTOP] || 0
-          , clientHeight = doc.compatMode === 'CSS1Compat' && docElm[CLIENTHEIGHT] || 
-                body && body[CLIENTHEIGHT] || docElm[CLIENTHEIGHT];
-    
-        return clientHeight <= img[GETBOUNDINGCLIENTRECT]().top - clientTop - foldDistance;                 
-    }
+        return src.replace(BREAKPOINT_NAME_REGEX, breakpoint.name);    
+    } 
     
 
     /*
@@ -502,6 +716,141 @@
         // According to the W3C, 'bandwidth' is reported in MB/s.
         // 0.09765625 MB/s = 100 KB/s = 800 kbps. Let's round up to 0.1 MB/s.
         return bandwidth > 0 && bandwidth < 0.1 || /^[23]g|3|4$/.test(type + EMPTYSTRING);       
+    }
+
+
+    /*
+     * Tells if an image is in the viewport area or not (visible to the user). 
+     */
+    function isInViewport(img, threshold) {
+        return !isRightOfFold(img, threshold) && !isLeftOfBegin(img, threshold) &&
+            !isBelowTheFold(img, threshold) && !isAboveTheTop(img, threshold);
+    }
+
+
+    function isBelowTheFold(img, threshold) {
+        return getDimension(HEIGHT, win) + getScroll(TOP, win) <= getOffset(TOP, img) - threshold;                 
+    }
+
+
+    function isAboveTheTop(img, threshold) {
+        return getScroll(TOP, win) >= getOffset(TOP, img) + threshold + getDimension(HEIGHT, img);                 
+    }
+
+
+    function isRightOfFold(img, threshold) {
+        return getDimension(WIDTH, win) + getScroll(LEFT, win) <= getOffset(LEFT, img) - threshold;
+    }
+
+
+    function isLeftOfBegin(img, threshold) {
+        return getScroll(LEFT, win) >= getOffset(LEFT, img) + threshold + getDimension(WIDTH, img);
+    }
+
+
+    /*
+     * Following "css" functions taken from jQuery 1.10
+     */
+    function getOffset( name, elem ) {
+        var box = { top: 0, left: 0 }
+          , doc = elem && elem.ownerDocument
+          , docElm, offsets;
+
+        if ( !doc ) {
+            return;
+        }
+
+        docElm = doc[DOCUMENTELEMENT];  
+
+        if ( typeof elem[GETBOUNDINGCLIENTRECT] !== UNDEFINED ) {
+            box = elem[GETBOUNDINGCLIENTRECT]();
+        }
+
+        win = getWindow( doc );
+        offsets = {
+            top: box[TOP]  + ( win[PAGEYOFFSET] || docElm[SCROLLTOP] )  - ( docElm.clientTop  || 0 ),
+            left: box[LEFT] + ( win[PAGEXOFFSET] || docElm[SCROLLLEFT] ) - ( docElm.clientLeft || 0 )
+        };
+
+        return offsets[name];
+    }
+
+
+    function getScroll( name, elem ) {
+        var names = {
+              top: {method: SCROLLTOP, prop: PAGEYOFFSET},  
+              left: {method: SCROLLLEFT, prop: PAGEXOFFSET}
+            }
+          , method = names[name].method
+          , prop = names[name].prop
+          , win = getWindow( elem );
+
+        return win ? (prop in win) ? win[ prop ] :
+            docElm[ method ] :
+            elem[ method ];
+    }
+
+
+    function getDimension( name, elem ) {
+        var names = { height: 'Height', width: 'Width'}
+          , doc, val, styles;
+
+        name = names[name];
+
+        if ( isWindow( elem ) ) {
+            return docElm[ CLIENT + name ];
+        }
+
+        // Get document width or height
+        if ( elem.nodeType === 9 ) {
+            doc = elem[DOCUMENTELEMENT];
+
+            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height], whichever is greatest
+            // unfortunately, this causes bug #3838 in IE6/8 only, but there is currently no good, small way to fix it.
+            return Math.max(
+                elem[BODY][ SCROLL + name ], doc[ SCROLL + name ],
+                elem[BODY][ OFFSET + name ], doc[ OFFSET + name ],
+                doc[ CLIENT + name ]
+            );
+        }
+
+        // Get width or height on the element
+        // Start with offset property, which is equivalent to the border-box value
+        val = elem[ OFFSET + name ];
+        name = name.toLowerCase();
+
+        if ( val <= 0 || val == NULL ) {
+            // Fall back to computed then uncomputed css if necessary
+            if (win.getComputedStyle) {
+                styles = win.getComputedStyle( elem, NULL );
+            } else if ( docElem.currentStyle ) {
+                styles = elem.currentStyle;
+            } 
+
+            if (styles) {
+                val = styles[ name ];
+            }
+
+            if ( val < 0 || val == NULL ) {
+                val = elem.style[ name ];
+            }
+        }
+
+        return parseFloat( val ) || 0;
+    }
+
+
+    function isWindow( obj ) {
+        return obj != NULL && obj == obj.window;
+    }
+
+
+    function getWindow( elem ) {
+        return isWindow( elem ) ?
+            elem :
+            elem.nodeType === 9 ?
+                elem.defaultView || elem.parentWindow :
+                FALSE;
     }
 
     
@@ -534,7 +883,7 @@
                 lastCalled = now;
                 result = func[APPLY](thisArg, args);
             } else if (!timeoutId) {
-                timeoutId = setTimeout(trailingCall, remain);
+                timeoutId = delay(trailingCall, remain);
             }
             return result;
         };
@@ -567,7 +916,7 @@
             thisArg = this;
 
             clearTimeout(timeoutId);
-            timeoutId = setTimeout(delayed, wait);
+            timeoutId = delay(delayed, wait);
 
             if (isImmediate) {
                 result = func[APPLY](thisArg, args);
@@ -579,11 +928,21 @@
     
     /*
      * Thanks to underscore.js and lodash.js
+     * Delays a function for the given number of milliseconds, and then calls
+     * it with the arguments supplied.
+     */
+    function delay(func, wait) {
+        var args = Array[PROTOTYPE].slice[CALL](arguments, 2);
+        return win.setTimeout(function(){ return func[APPLY](NULL, args); }, wait);
+    }
+
+
+    /*
+     * Thanks to underscore.js and lodash.js
      * Defers a function, scheduling it to run after the current call stack has cleared.
      */
     function defer(func) {
-        var args = Array[PROTOTYPE].slice[CALL](arguments, 1);
-        setTimeout(function(){ return func[APPLY](NULL, args); }, 1);
+        return delay[APPLY](NULL, [func, 1].concat(Array[PROTOTYPE].slice[CALL](arguments, 1)));
     }
     
     
@@ -609,7 +968,7 @@
     
     
     /*
-     * onDomReady.js 1.2 (c) 2012 Tubal Martin - MIT license
+     * onDomReady.js 1.3 (c) 2013 Tubal Martin - MIT license
      * https://github.com/tubalmartin/ondomready
      * Notes:
      * - Slightly adapted for Riloadr
@@ -626,8 +985,9 @@
         // Handle when the DOM is ready
         function ready( fn ) {
             if ( !isReady ) {
-                // Make sure body exists, at least, in case IE gets a little overzealous.
-                if ( !doc.body ) {
+
+                // Make sure body exists, at least, in case IE gets a little overzealous (ticket #5443).
+                if ( !doc[BODY] ) {
                     return defer( ready );
                 }
                 
@@ -641,12 +1001,19 @@
             }
         }
 
-        // The document ready event handler
-        function DOMContentLoadedHandler() {
-            if ( w3c || doc[READYSTATE] === COMPLETE ) {
-                removeEvent( doc, w3c ? DOMCONTENTLOADED : READYSTATECHANGE, DOMContentLoadedHandler );
+        // The ready event handler
+        function completed( event ) {
+            // readyState === "complete" is good enough for us to call the dom ready in oldIE
+            if ( w3c || event.type === LOAD || doc[READYSTATE] === COMPLETE ) {
+                detach();
                 ready();
             }
+        }
+
+        // Clean-up method for dom ready events
+        function detach() {
+            removeEvent( doc, w3c ? DOMCONTENTLOADED : READYSTATECHANGE, completed );
+            removeEvent( win, LOAD, completed );
         }
         
         // Attach the listeners:
@@ -662,13 +1029,12 @@
             // Standards-based browsers support DOMContentLoaded    
             if ( w3c ) {                
                 // Use the handy event callback
-                addEvent( doc, DOMCONTENTLOADED, DOMContentLoadedHandler );
+                addEvent( doc, DOMCONTENTLOADED, completed );
         
             // If IE event model is used
             } else {                
-                // ensure firing before onload,
-                // maybe late but safe also for iframes
-                addEvent( doc, READYSTATECHANGE, DOMContentLoadedHandler );
+                // Ensure firing before onload, maybe late but safe also for iframes
+                addEvent( doc, READYSTATECHANGE, completed );
 
                 // If IE and not a frame
                 // continually check to see if the document is ready
@@ -684,8 +1050,11 @@
                                 // http://javascript.nwbox.com/IEContentLoaded/
                                 top.doScroll('left');
                             } catch(e) {
-                                return setTimeout( doScrollCheck, 50 );
+                                return delay( doScrollCheck, 50 );
                             }
+
+                            // detach all dom ready events
+                            detach();
 
                             // and execute any waiting functions
                             ready();
@@ -695,7 +1064,7 @@
             }
             
             // A fallback to window.onload, that will always work
-            addEvent( win, LOAD, ready );
+            addEvent( win, LOAD, completed );
         } 
         
         return function( fn ) { 
