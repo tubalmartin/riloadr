@@ -670,9 +670,6 @@ Riloadr provides two different modes of dynamic Art Direction:
 Don't be afraid of enabling this option for mobile devices: Mobile browsers cannot be resized although some of them fire the resize event when certain actions occur but the viewport width isn't likely to change (and that's what matters to Riloadr) so it's safe to assume this setting targets desktop browsers only.
 
 ```js
-    // We're creating 2 image groups that share the same root (body)
-    // Each Riloadr object (group) will only process its images (identified by 'name')
-    
     var group1 = new Riloadr({
         name: 'my-artistic-group',
         breakpoints: [
