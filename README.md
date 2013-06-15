@@ -772,6 +772,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 * NEW `imgFormat` breakpoint option. [See example](#feature-imgformat)
 * NEW `invisible` mode for deferring the load of images.
 * ondomready.js updated to version 1.3 (jQuery 1.10.1)
+* Backwards compatibility guaranteed. You can upgrade safely.
 
 ### 1.3.2
 
