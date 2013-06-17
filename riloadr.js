@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.4.0 (c) 2013 Tubal Martin - MIT license
+ * Riloadr.js 1.4.1 (c) 2013 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -205,14 +205,13 @@
           , prevBreakpoint
 
             // Fallback breakpoint
-          , fallbackBreakpoint
+          , fallbackBreakpoint = {}
 
-            // Max breakpoint from those supplied
-          , maxBreakpoint
+            // Widest breakpoint from those supplied
+          , widestBreakpoint
 
-          , currentBreakpointIsDifferent
-          , currentBreakpointIsWider
-          , currentBreakpointIsMax;
+            // Boolean flag
+          , currentBreakpointIsWidest;
 
         
         // PRIVATE METHODS
@@ -220,17 +219,17 @@
         
 
         /*
-         * Sets viewportWidth, breakpoint, fallbackBreakpoint & currentBreakpointIsMax vars
+         * Sets viewportWidth, breakpoint, fallbackBreakpoint & currentBreakpointIsWidest vars
          */ 
         function setVwidthAndBreakpoints() {
             viewportWidth = getViewportWidthInCssPixels(); 
             breakpoint = getBreakpoint(breakpoints, viewportWidth, ignoreLowBandwidth);
-            fallbackBreakpoint = getFallbackBreakpoint(breakpoints, breakpoint[FALLBACK]);
+            fallbackBreakpoint = breakpoint[FALLBACK] && getFallbackBreakpoint(breakpoints, breakpoint[FALLBACK]);
+            widestBreakpoint = widestBreakpoint || watchViewportEnabled && getWidestBreakpoint(breakpoints); 
 
             // If watch mode is enabled & is set to 'wider', test whether the current 
-            // breakpoint is equal to the max breakpoint.
-            currentBreakpointIsMax = watchViewportEnabled && watchViewportUp && 
-                areBreakpointsEqual(breakpoint, maxBreakpoint);      
+            // breakpoint is equal to the widest breakpoint.
+            currentBreakpointIsWidest = watchViewportUp && areBreakpointsEqual(breakpoint, widestBreakpoint);      
         }
 
 
@@ -238,7 +237,9 @@
          * Registers event listeners
          * React on scroll, resize and orientationchange events
          */  
-        function addEventListeners(current, i) {
+        function addEventListeners() {
+            var i = 0, current;
+
             // Event shared by defer & watchViewport modes        
             addEvent(win, RESIZE, resizeListener);
             
@@ -254,7 +255,6 @@
 
                 // Scroll events on overflown elements
                 if (overflownElemsIds) {
-                    i = 0;
                     while (current = overflownElemsIds[i]) {
                         addEvent(doc[GETELEMENTBYID](current), SCROLL, scrollListener);
                         i++;
@@ -267,7 +267,9 @@
         /*
          * Removes event listeners
          */  
-        function removeEventListeners(current, i) {
+        function removeEventListeners() {
+            var i = 0, current;
+
             // Only remove the resize event if watchViewport mode is disabled/done
             if ( ! watchViewportEnabled ) {
                 removeEvent(win, RESIZE, resizeListener);
@@ -280,7 +282,6 @@
 
                 // Scroll events on overflown elements
                 if (overflownElemsIds) {
-                    i = 0;
                     while (current = overflownElemsIds[i]) {
                         removeEvent(doc[GETELEMENTBYID](current), SCROLL, scrollListener);
                         i++;
@@ -385,14 +386,6 @@
                     // Add event listeners on update
                     update && addEventListeners();
 
-                    // This assignments must be placed here so that they are evaluated on any event.
-                    if (watchViewportEnabled && prevBreakpoint) {
-                        // Is current breakpoint equal to previous one?
-                        currentBreakpointIsDifferent = ! areBreakpointsEqual(breakpoint, prevBreakpoint);
-                        // Is current breakpoint wider than previous one?
-                        currentBreakpointIsWider = watchViewportUp && isBreakpointWider(breakpoint, prevBreakpoint);
-                    }
-
                     imageList = selectorsApiSupported && 
                         root[QUERYSELECTORALL]('img.'+className) || 
                         root.getElementsByTagName('img');         
@@ -412,11 +405,10 @@
                             // - Watch mode '*' is enabled and current breakpoint differs from previous one
                             if (! watchViewportEnabled || 
                                 watchViewportEnabled && (
-                                    ! prevBreakpoint || 
-                                    (watchViewportUp && currentBreakpointIsWider) || 
-                                    (watchViewportBoth && currentBreakpointIsDifferent)
-                                )) {
-                                
+                                    ! prevBreakpoint || (
+                                    watchViewportUp && isBreakpointWider(breakpoint, prevBreakpoint) || 
+                                    watchViewportBoth && ! areBreakpointsEqual(breakpoint, prevBreakpoint)
+                                ))) {
                                 // Add image to the list
                                 images.push(current);
                                 // Increment counter
@@ -424,8 +416,8 @@
                             }
 
                             // Flag images as RILOADED if watch mode is disabled/done or
-                            // if watch mode is 'wider' & current breakpoint matches the max breakpoint    
-                            if ( ! watchViewportEnabled || currentBreakpointIsMax) {
+                            // if watch mode is 'wider' & current breakpoint matches the widest breakpoint    
+                            if ( ! watchViewportEnabled || currentBreakpointIsWidest) {
                                 // Flag to avoid reprocessing
                                 current[RILOADED] = TRUE;
                             }  
@@ -433,9 +425,9 @@
                         i++;
                     }
 
-                    // If watch mode is 'wider' & current breakpoint matches the max breakpoint
+                    // If watch mode is 'wider' & current breakpoint matches the widest breakpoint
                     // disable watch mode.
-                    currentBreakpointIsMax && (watchViewportEnabled = FALSE);     
+                    currentBreakpointIsWidest && (watchViewportEnabled = FALSE);     
 
                     // Remember the breakpoint used
                     watchViewportEnabled && (prevBreakpoint = breakpoint);
@@ -466,7 +458,6 @@
         onDomReady(function(){
             body = doc[BODY];
             root = doc[GETELEMENTBYID](root) || body;
-            maxBreakpoint = watchViewportEnabled && getMaxBreakpoint(breakpoints); 
             setVwidthAndBreakpoints();
 
             // Add event listeners
@@ -488,7 +479,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.4.0';
+    Riloadr.version = '1.4.1';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -545,31 +536,26 @@
 
 
     /*
-     * Returns the widest/max breakpoint from those supplied.
+     * Returns the widest breakpoint from those supplied.
      */
-    function getMaxBreakpoint(breakpoints, breakpoint, maxBreakpoint, i) {
-        maxBreakpoint = {};
-        i = 0;  
-        while (breakpoint = breakpoints[i]) {   
-            if (isBreakpointWider( breakpoint, maxBreakpoint )) {  
-                maxBreakpoint = breakpoint;           
-            }
-            i++;
-        }         
+    function getWidestBreakpoint(breakpoints) {
+        var i = 0, widestBreakpoint = {}, current;
 
-        return maxBreakpoint;
+        while (current = breakpoints[i]) {
+            isBreakpointWider(current, widestBreakpoint) && (widestBreakpoint = current);   
+            i++;
+        }
+
+        return widestBreakpoint;
     }
 
 
     /*
      * Returns the fallback breakpoint to apply.
      */
-    function getFallbackBreakpoint(breakpoints, fallbackBreakpointName, current, i) {
-        if (typeof fallbackBreakpointName == UNDEFINED) {
-            return {};
-        }
+    function getFallbackBreakpoint(breakpoints, fallbackBreakpointName) {
+        var i = 0, current;
 
-        i = 0;
         while (current = breakpoints[i]) {
             if (current.name == fallbackBreakpointName) {
                 return current; 
@@ -695,8 +681,8 @@
      * Tells if an image is in the viewport area or not (visible to the user). 
      */
     function isInViewport(img, threshold) {
-        return !isRightOfFold(img, threshold) && !isLeftOfBegin(img, threshold) &&
-            !isBelowTheFold(img, threshold) && !isAboveTheTop(img, threshold);
+        return !isBelowTheFold(img, threshold) && !isAboveTheTop(img, threshold) && 
+            !isRightOfFold(img, threshold) && !isLeftOfBegin(img, threshold);
     }
 
 
@@ -726,13 +712,11 @@
     function getOffset( name, elem ) {
         var box = { top: 0, left: 0 }
           , doc = elem && elem.ownerDocument
-          , docElm, offsets;
+          , win, offsets;
 
         if ( !doc ) {
             return;
-        }
-
-        docElm = doc[DOCUMENTELEMENT];  
+        }  
 
         if ( typeof elem[GETBOUNDINGCLIENTRECT] !== UNDEFINED ) {
             box = elem[GETBOUNDINGCLIENTRECT]();
@@ -773,7 +757,8 @@
             return docElm[ CLIENT + name ];
         }
 
-        // Get document width or height
+        // Get document width or height (not needed for Riloadr)
+        /*
         if ( elem.nodeType === 9 ) {
             doc = elem[DOCUMENTELEMENT];
 
@@ -785,6 +770,7 @@
                 doc[ CLIENT + name ]
             );
         }
+        */
 
         // Get width or height on the element
         // Start with offset property, which is equivalent to the border-box value
@@ -795,7 +781,7 @@
             // Fall back to computed then uncomputed css if necessary
             if (win.getComputedStyle) {
                 styles = win.getComputedStyle( elem, NULL );
-            } else if ( docElem.currentStyle ) {
+            } else if ( docElm.currentStyle ) {
                 styles = elem.currentStyle;
             } 
 

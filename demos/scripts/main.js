@@ -83,7 +83,7 @@
         breakpoints: [
             {name: 240, maxWidth: 240},
             {name: 320, minWidth: 241, maxWidth: 320},
-            {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+            {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display
             {name: 640, minWidth: 321, maxWidth: 640},
             {name: 1024, minWidth: 641}
         ]
@@ -100,7 +100,7 @@
         breakpoints: [
             {name: 240, maxWidth: 240},
             {name: 320, minWidth: 241, maxWidth: 320},
-            {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+            {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display
             {name: 640, minWidth: 321, maxWidth: 640},
             {name: 1024, minWidth: 641}
         ]
@@ -111,9 +111,9 @@
         base: 'images/{breakpoint-name}/',
         onload: onload,
         breakpoints: [
-            {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
-            {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
-            {name: 640, minWidth: 321} /* Viewports wider than 320px */
+            {name: 320, maxWidth: 320}, // Viewports smaller than 320px
+            {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display
+            {name: 640, minWidth: 321} // Viewports wider than 320px
         ]
     });
 
@@ -164,7 +164,7 @@
         breakpoints: [
             {name: 240, maxWidth: 240},
             {name: 320, minWidth: 241, maxWidth: 320},
-            {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
+            {name: 640, minWidth: 241, maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display
             {name: 640, minWidth: 321}
         ]
     });
@@ -210,6 +210,7 @@
             {name: 1024, minWidth: 641}
         ]
     });
+
     
     // Buttons will show up when window is loaded
     // Although this works x-browser, this code is shit so don't use it!!
