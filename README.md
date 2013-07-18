@@ -1,4 +1,4 @@
-# Riloadr 1.4.1 - Jun 17, 2013
+# Riloadr 1.4.2 - Jul 18, 2013
 
 A cross-browser framework-independent responsive images loader.
 
@@ -765,6 +765,10 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 <a name="changelog"></a>
 
 ## 6. Changelog
+
+### 1.4.2
+
+* Fixed minified versions: UglifyJS removed the `new` keyword before `RegExp` and `Error` objects.
 
 ### 1.4.1
 
