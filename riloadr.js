@@ -1,5 +1,5 @@
 /*! 
- * Riloadr.js 1.4.2 (c) 2013 Tubal Martin - MIT license
+ * Riloadr.js 1.4.3 (c) 2013 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -15,6 +15,7 @@
     
     var ON = 'on'
       , TOP = 'top'
+      , SRC = 'src'
       , TRUE = !0
       , BODY = 'body'
       , LEFT = 'left'
@@ -35,6 +36,7 @@
       , RESIZE = 'resize'
       , ONLOAD = ON+LOAD
       , ONERROR = ON+ERROR
+      , ONABORT = ON+'abort'
       , RETRIES = 'retries'
       , MINWIDTH = 'minWidth'
       , MAXWIDTH = 'maxWidth'
@@ -171,12 +173,12 @@
           , deferInvisibleEnabled = (deferMode == 'invisible' || deferMode == 'belowfold') && !operaMini
           
             // Reduce by 5.5x the # of times loadImages is called when scrolling
-          , scrollListener = deferInvisibleEnabled && throttle(function() {
+          , scrollListener = throttle(function() {
                 instance[LOADIMAGES]();
             }, DELAY)
 
             // Reduce to 1 the # of times loadImages is called when resizing 
-          , resizeListener = (deferInvisibleEnabled || watchViewportEnabled) && debounce(function() {
+          , resizeListener = debounce(function() {
                 // On resize update viewport dependant values if watchViewport mode is enabled
                 watchViewportEnabled && setVwidthAndBreakpoints();
 
@@ -185,7 +187,7 @@
             }, DELAY)
 
             // Reduce to 1 the # of times loadImages is called when orientation changes.  
-          , orientationchangeListener = deferInvisibleEnabled && debounce(function(){
+          , orientationchangeListener = debounce(function(){
                 if (win[ORIENTATION] !== lastOrientation) {
                     lastOrientation = win[ORIENTATION];
                     instance[LOADIMAGES]();
@@ -240,8 +242,10 @@
         function addEventListeners() {
             var i = 0, current;
 
-            // Event shared by defer & watchViewport modes        
-            resizeListener && addEvent(win, RESIZE, resizeListener);
+            // Event shared by defer & watchViewport modes
+            if (deferInvisibleEnabled || watchViewportEnabled) {
+                addEvent(win, RESIZE, resizeListener);
+            }
             
             if (deferInvisibleEnabled) {
                 addEvent(win, SCROLL, scrollListener);
@@ -270,32 +274,32 @@
         function removeEventListeners() {
             var i = 0, current;
 
-            // Only remove the resize event if watchViewport mode is disabled/done
+            // Only remove events if watchViewport mode is disabled/done
             if ( ! watchViewportEnabled ) {
-                resizeListener && removeEvent(win, RESIZE, resizeListener);
-            }
+                removeEvent(win, RESIZE, resizeListener);
 
-            // Only remove the scroll/orientation events if defer 'invisible' mode
-            // is enabled & watchViewport mode is disabled/done
-            if (deferInvisibleEnabled && ! watchViewportEnabled) {
-                removeEvent(win, SCROLL, scrollListener);
+                // Only remove the scroll/orientation events if defer 'invisible' mode
+                // is enabled & watchViewport mode is disabled/done
+                if (deferInvisibleEnabled) {
+                    removeEvent(win, SCROLL, scrollListener);
 
-                // Scroll events on overflown elements
-                if (overflownElemsIds) {
-                    while (current = overflownElemsIds[i]) {
-                        removeEvent(doc[GETELEMENTBYID](current), SCROLL, scrollListener);
-                        i++;
-                    }
-                } 
+                    // Scroll events on overflown elements
+                    if (overflownElemsIds) {
+                        while (current = overflownElemsIds[i]) {
+                            removeEvent(doc[GETELEMENTBYID](current), SCROLL, scrollListener);
+                            i++;
+                        }
+                    } 
 
-                // Is orientationchange event supported? If so, remove the listener 
-                orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
-            }
+                    // Is orientationchange event supported? If so, remove the listener 
+                    orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
+                }
+            } 
         }
 
 
         /*
-         * Loads an image.
+         * Loads an image (DOM)
          */
         function loadImage(img, idx) {   
             // Initial # of times we tried to reload this image
@@ -304,28 +308,51 @@
             // fallback image flag
             img[FALLBACK] = FALSE;
             
-            // Image callbacks
+            // Register event listeners
             img[ONLOAD] = imageOnloadCallback;
-            img[ONERROR] = imageOnerrorCallback;
+            img[ONERROR] = img[ONABORT] = imageOnerrorCallback;
                     
-            // Load it    
-            img.src = getImageSrc(img, base, breakpoint);
+            // Load it
+            // The first time the "src" attribute is assigned with JS, image events 
+            // will be fired cross-browser. However, if an error occurs and we 
+            // need to set again the "src" attribute using JS, image events might 
+            // not be fired in some browsers such as some versions of Google Chrome. 
+            // See imageOnerrorCallback for a workaround that works cross-browser.
+            img[SRC] = getImageSrc(img, base, breakpoint);
             
             // Reduce the images array for shorter loops
             images.splice(idx, 1);
         }
-        
-        
+
+            
         /*
          * Image onload Callback
          */
         function imageOnloadCallback() {
-            var img = this;
-            img[ONLOAD] = img[ONERROR] = NULL;
-            img[RILOADED] && (img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2'));
-            deferInvisibleEnabled && (img.style.visibility = 'visible');
-            ONLOAD in options && options[ONLOAD][CALL](img);
-            onCompleteCallback(); 
+            var img = this, _img, dim;
+
+            // Avoid false positives: Some browsers may fire the "onload" image 
+            // event after the "onerror" or "onabort" events have fired.
+
+            // Modern browsers
+            if ('naturalWidth' in img) {
+                dim = img['naturalWidth'] + img['naturalHeight'];
+            } else {
+                // Older browsers (IE < 9)
+                _img = new Image;
+                _img[SRC] = img[SRC]; // Response already cached, nevermind.
+                dim = _img[WIDTH] + _img[HEIGHT];
+                _img = NULL;
+            }
+
+            // Did image load correctly?
+            if (+dim > 0) {
+                img[ONLOAD] = img[ONERROR] = img[ONABORT] = NULL;
+                img[RILOADED] && (img[CLASSNAME] = img[CLASSNAME].replace(classNameRegexp, '$1$2'));
+                deferInvisibleEnabled && (img.style.visibility = 'visible');
+                ONLOAD in options && options[ONLOAD][CALL](img);
+                onCompleteCallback(); 
+            }
         }
         
         
@@ -335,15 +362,35 @@
          * if an image fails to load.
          */
         function imageOnerrorCallback() {
-            var img = this;  
+            var img = this
+              , loadImage = function(src) {
+                    var _img = new Image;
+                    _img[ONLOAD] = function() {
+                        img[SRC] = _img[SRC];
+                        imageOnloadCallback[CALL](img);
+                    };
+                    _img[ONERROR] = img[ONABORT] = function() {
+                        imageOnerrorCallback[CALL](img);
+                    };
+                    _img[SRC] = src;
+                }
+              , src;
+
+            // Remove event listeners from DOM image since events might not be 
+            // fired anymore. 
+            img[ONLOAD] = img[ONERROR] = img[ONABORT] = NULL;
+
             ONERROR in options && options[ONERROR][CALL](img); 
+
             if (img[RETRIES] < retries) {
                 img[RETRIES]++;
-                img.src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpoint : breakpoint), TRUE);
+                src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpoint : breakpoint), TRUE);
+                loadImage(src);
             } else if (FALLBACK in breakpoint && !img[FALLBACK]) {
                 img[RETRIES] = 0;
                 img[FALLBACK] = TRUE;
-                img.src = getImageSrc(img, base, fallbackBreakpoint);
+                src = getImageSrc(img, base, fallbackBreakpoint);
+                loadImage(src);
             } else {
                 // If an image fails to load consider it loaded.
                 onCompleteCallback();
@@ -358,7 +405,7 @@
         function onCompleteCallback() {
             imagesPendingLoad--;
 
-            if (imagesPendingLoad == 0) {
+            if (imagesPendingLoad === 0) {
                 // No more images to load? remove event listeners
                 removeEventListeners();
 
@@ -425,12 +472,16 @@
                         i++;
                     }
 
-                    // If watch mode is 'wider' & current breakpoint matches the widest breakpoint
-                    // disable watch mode.
-                    currentBreakpointIsWidest && (watchViewportEnabled = FALSE);     
+                    if (watchViewportEnabled) {
+                        // If watch mode is 'wider' & current breakpoint matches the widest breakpoint
+                        // disable watch mode.
+                        if (currentBreakpointIsWidest) {
+                            watchViewportEnabled = FALSE;
+                        }
 
-                    // Remember the breakpoint used
-                    watchViewportEnabled && (prevBreakpoint = breakpoint);
+                        // Remember the breakpoint used
+                        prevBreakpoint = breakpoint;
+                    }
                 }
                 
                 // Load images
@@ -479,7 +530,7 @@
     // ------------------------
     
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.4.2';
+    Riloadr.version = '1.4.3';
     
     // PUBLIC METHODS (SHARED)
     // ------------------------

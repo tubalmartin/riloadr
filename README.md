@@ -1,4 +1,4 @@
-# Riloadr 1.4.2 - Jul 18, 2013
+# Riloadr 1.4.3 - Jul 18, 2013
 
 A cross-browser framework-independent responsive images loader.
 
@@ -765,6 +765,11 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 <a name="changelog"></a>
 
 ## 6. Changelog
+
+### 1.4.3
+
+* Bugfix: If an image failed to load, Riloadr tried to load it again if `retries` was set or if a `fallback` breakpoint was provided. The issue here is some browsers such as some Google Chrome versions (28.0.1500.71) do not fire image events after the first time the `src` attribute is set with JS. This is now controlled and works cross-browser.
+* Bugfix: Some browsers such as some Google Chrome versions (28.0.1500.71) fire the image `onload` event after the `onerror` or `onabort` events have been fired resulting in unexpected behavior. This is now controlled and works cross-browser.
 
 ### 1.4.2
 
