@@ -333,14 +333,13 @@
          * Image onerror Callback
          * If user sets 'retries' > 0, Riloadr will try to load an image n times 
          * if an image fails to load.
-         * If a fallback breakpoint is set, it'll be used after all retries.
          */
         function imageOnerrorCallback() {
             var img = this;  
             ONERROR in options && options[ONERROR][CALL](img); 
             if (img[RETRIES] < retries) {
                 img[RETRIES]++;
-                img.src = getImageSrc(img, base, breakpoint, TRUE);
+                img.src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpoint : breakpoint), TRUE);
             } else if (FALLBACK in breakpoint && !img[FALLBACK]) {
                 img[RETRIES] = 0;
                 img[FALLBACK] = TRUE;
