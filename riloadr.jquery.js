@@ -282,18 +282,6 @@
                 orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
             }
         }
-
-
-        /*
-         * Removes event listeners if defer mode is 'belowfold'
-         */  
-        function removeBelowfoldListeners() {
-            removeEvent(win, SCROLL, scrollListener);        
-            removeEvent(win, RESIZE, resizeListener);
-
-            // Is orientationchange event supported? If so, remove the listener 
-            orientationSupported && removeEvent(win, ORIENTATIONCHANGE, orientationchangeListener);
-        }
         
         
         /*
