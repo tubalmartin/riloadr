@@ -768,6 +768,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 ### 1.4.2
 
+* Bugfix: Fallback images were not loaded when `retries` was set.
 * Fixed minified versions: UglifyJS removed the `new` keyword before `RegExp` and `Error` objects.
 
 ### 1.4.1
