@@ -768,6 +768,7 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 
 ### 1.4.2
 
+* Bugfix: Resize event listener should only be registered/unregistered when either `defer` mode is `invisible` or `watchViewportWidth` is enabled.
 * Fixed minified versions: UglifyJS removed the `new` keyword before `RegExp` and `Error` objects.
 
 ### 1.4.1

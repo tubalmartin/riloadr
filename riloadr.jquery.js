@@ -231,7 +231,7 @@
             var i = 0, current;
 
             // Event shared by defer & watchViewport modes        
-            addEvent(win, RESIZE, resizeListener);
+            resizeListener && addEvent(win, RESIZE, resizeListener);
             
             if (deferInvisibleEnabled) {
                 addEvent(win, SCROLL, scrollListener);
@@ -262,7 +262,7 @@
 
             // Only remove the resize event if watchViewport mode is disabled/done
             if ( ! watchViewportEnabled ) {
-                removeEvent(win, RESIZE, resizeListener);
+                resizeListener && removeEvent(win, RESIZE, resizeListener);
             }
 
             // Only remove the scroll/orientation events if defer 'invisible' mode
@@ -443,7 +443,7 @@
             setVwidthAndBreakpoints();
 
             // Add event listeners
-            (deferInvisibleEnabled || watchViewportEnabled) && addEventListeners(); 
+            addEventListeners(); 
             
             if (!deferMode || deferInvisibleEnabled) {
                 // No defer mode: load all images now! OR 
