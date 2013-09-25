@@ -109,7 +109,10 @@
             
             // Base path
           , base = options.base || EMPTYSTRING
-            
+
+            // Whether to use data-src-{breakpoint-name} instead of filename_{breakpoint-name}
+          , useDataBreak = options.useDataBreak || false
+
             // CSS-like breakpoints configuration (required)
           , breakpoints = options.breakpoints || error('"breakpoints" not defined.')  
             
@@ -308,8 +311,8 @@
             // need to set again the "src" attribute using JS, image events might 
             // not be fired in some browsers such as some versions of Google Chrome. 
             // See imageOnerrorCallback for a workaround that works cross-browser.
-            img[SRC] = getImageSrc(img, base, breakpoint);
-            
+            img[SRC] = getImageSrc(img, base, breakpoint, useDataBreak);
+
             // Reduce the images array for shorter loops
             images.splice(idx, 1);
         }
@@ -374,12 +377,12 @@
 
             if (img[RETRIES] < retries) {
                 img[RETRIES]++;
-                src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpoint : breakpoint), TRUE);
+                src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpoint : breakpoint), useDataBreak, TRUE);
                 loadImage(src);
             } else if (FALLBACK in breakpoint && !img[FALLBACK]) {
                 img[RETRIES] = 0;
                 img[FALLBACK] = TRUE;
-                src = getImageSrc(img, base, fallbackBreakpoint);
+                src = getImageSrc(img, base, fallbackBreakpoint, useDataBreak);
                 loadImage(src);
             } else {
                 // If an image fails to load consider it loaded.
@@ -666,9 +669,16 @@
      * Returns the URL of an image
      * If reload is TRUE, a timestamp is added to avoid caching.
      */
-    function getImageSrc(img, base, breakpoint, reload) {
-        var src = (img.getAttribute('data-base') || base) +
+    function getImageSrc(img, base, breakpoint, useDataBreak, reload) {
+        var src;
+
+        if (useDataBreak) {
+          src = (img.getAttribute('data-base') || base) +
+            (img.getAttribute('data-src-' + breakpoint['name']) || EMPTYSTRING);
+        } else {
+          src = (img.getAttribute('data-base') || base) +
             (img.getAttribute('data-src') || EMPTYSTRING);
+        }
 
         if (breakpoint[IMGFORMAT]) {
             src = src.split('.');
