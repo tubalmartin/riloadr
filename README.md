@@ -248,6 +248,34 @@ If `base` is set and an image has a `data-base` attribute, the attribute's value
 
 ***
 
+### useDataBreak (*Boolean* | Optional)  
+Whether to use data-src-{breakpoint-name} to set images for each breakpoint
+
+```js
+    var group10 = new Riloadr({
+        name: 'group10',
+        base: 'images/',
+        useDataBreak: true,
+        watchViewportWidth: '*',
+        breakpoints: [
+            {name: 'small', maxWidth: 400},
+            {name: 'medium', minWidth: 401},
+        ]
+    });
+```
+
+
+```html
+    <img class="group10" alt="group10 - Waimea" data-src-small="waimea_320.jpg" data-src-medium="waimea_640.jpg">
+```
+If `useDataBreak` is not set, Riloadr will use the usual method of using data-src
+
+Use of `base` is the same as normal.
+
+
+***
+
+
 <a name="breakpoints"></a>
 
 ### breakpoints (*Array* | Required)  

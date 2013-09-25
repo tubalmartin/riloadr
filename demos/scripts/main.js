@@ -211,7 +211,17 @@
         ]
     });
 
-    
+    var group10 = new Riloadr({
+        name: 'group10',
+        base: 'images/',
+        useDataBreak: true,
+        watchViewportWidth: '*',
+        breakpoints: [
+            {name: 'small', maxWidth: 400},
+            {name: 'medium', minWidth: 401},
+        ]
+    });
+
     // Buttons will show up when window is loaded
     // Although this works x-browser, this code is shit so don't use it!!
     function activateButtons() {
