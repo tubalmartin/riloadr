@@ -264,11 +264,11 @@ Whether to use data-src-{breakpoint-name} to set images for each breakpoint
     });
 ```
 
-If `useDataBreak` is not set, Riloadr will use the usual method of using data-src
 
 ```html
     <img class="group10" alt="group10 - Waimea" data-src-small="waimea_320.jpg" data-src-medium="waimea_640.jpg">
 ```
+If `useDataBreak` is not set, Riloadr will use the usual method of using data-src
 
 Use of `base` is the same as normal.
 
