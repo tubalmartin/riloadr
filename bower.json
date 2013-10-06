@@ -1,0 +1,24 @@
+{
+  "name": "Riloadr",
+  "main": ["riloadr.js", "riloadr.jquery.js"],
+  "version": "1.5.0",
+  "homepage": "https://github.com/tubalmartin/riloadr",
+  "authors": [
+    "Túbal Martín <tubalmartin@gmail.com>"
+  ],
+  "description": "A cross-browser framework-independent responsive images loader",
+  "keywords": [
+    "riloadr",
+    "rwd",
+    "responsive",
+    "image",
+    "images",
+    "loader",
+    "lazy"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "demos"
+  ]
+}

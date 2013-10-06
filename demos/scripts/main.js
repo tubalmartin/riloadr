@@ -63,14 +63,14 @@
         base: 'images/',
         onload: onload,
         breakpoints: [
-            {name: 320, maxWidth: 320}, /* Viewports smaller than 320px */
-            {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, /* iPhone 4 Retina display */
-            {name: 640, minWidth: 321} /* Viewports wider than 320px */
+            {name: 320, maxWidth: 320}, // Viewports smaller than 320px
+            {name: 640, maxWidth: 320, minDevicePixelRatio: 2}, // iPhone 4 Retina display
+            {name: 640, minWidth: 321} // Viewports wider than 320px
         ]
     });
 
     var group2 = new Riloadr({
-        root: 'group2', /* Id of DOM node */
+        root: 'group2', // Id of DOM node
         base: 'images/{breakpoint-name}/',
         defer: 'belowfold',
         foldDistance: 120,
@@ -208,6 +208,22 @@
             {name: 320, minWidth: 241, maxWidth: 400},
             {name: 640, minWidth: 401, maxWidth: 640},
             {name: 1024, minWidth: 641}
+        ]
+    });
+
+    // Testing multiple data-src- attributes
+    var group10 = new Riloadr({
+        name: 'group10',
+        base: 'images/waimea_beach/',
+        onload: onload,
+        onerror: onerror,
+        oncomplete: function() {
+            console.log("All images in Group 10 are loaded");
+        },
+        breakpoints: [
+            {name: 'small', maxWidth: 240},
+            {name: 'medium', minWidth: 241, maxWidth: 400},
+            {name: 'big', minWidth: 401}
         ]
     });
 
