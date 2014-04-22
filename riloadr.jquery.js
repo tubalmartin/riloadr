@@ -636,7 +636,7 @@
     function getViewportWidthInCssPixels() {
         var math = Math
           , widths = [docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
-          , screenWidthFallback = math.ceil(screenWidth / devicePixelRatio)
+          , screenWidthFallback = math.ceil(screenWidth)
           , l = widths[LENGTH]
           , i = 0
           , width;
