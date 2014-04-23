@@ -1,4 +1,4 @@
-# Riloadr 1.5.0 - Oct 6, 2013
+# Riloadr 1.5.1 - Apr 23, 2014
 
 A cross-browser framework-independent responsive images loader.
 
