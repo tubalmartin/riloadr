@@ -1,26 +1,18 @@
 /*
  * Demo Module
- * Compatible with Require.js v1.x & v2.x, curl.js and browser globals.
+ * Compatible with Require.js v1.x & v2.x and browser globals.
  */
 !function(fn) {
     // AMD
     if (typeof define === 'function' && define.amd) {
         var usejQuery = 'usejQueryVersion' in window && define.amd.jQuery,
-            riloadrFileName = usejQuery ? 'riloadr.jquery' : 'riloadr',
-            cfg = {
-                paths: {'jquery': 'http://code.jquery.com/jquery-1.10.1.min'}
-            };
+            riloadrFileName = usejQuery ? 'riloadr.jquery' : 'riloadr';
         
         // RequireJS
-        if (typeof require === 'function') {
-            require.config(cfg);
-            require(['../' + riloadrFileName + '.js'], fn);
-        
-        // curl
-        } else if (typeof curl === 'function') {
-            cfg.baseUrl = '../';
-            curl(cfg, [riloadrFileName], fn);
-        }
+        requirejs.config({
+          paths: {'jquery': 'http://code.jquery.com/jquery-1.11.0.min'}
+        });
+        require(['../' + riloadrFileName + '.js'], fn);
 
     // Browser global      
     } else {
@@ -33,9 +25,9 @@
 
     // AMD test
     var isAMD = !('Riloadr' in window);
-    console.log('AMD loader used? ' + isAMD);
+    console.log('RequireJS AMD loader used? ' + isAMD);
     if (isAMD) {
-        console.log('AMD loader in use: ' + (typeof require === 'function' ? 'RequireJS '+require.version : 'curl '+curl.version));
+        console.log('RequireJS version: ' + requirejs.version);
     }
 
     // jQuery test
@@ -240,10 +232,12 @@
                 {name: 'tahiti', alt: 'Tahiti'}
             ],
             group4Container = document.getElementById('group4'),
-            group4Button = document.getElementById('group4-button');
+            group4Button = document.getElementById('group4-button'),
+            group9Container = document.getElementById('group9'),
+            group9Button = document.getElementById('group9-button');
 
         // Display them
-        group2Button.style.display = group4Button.style.display = 'block';    
+        group2Button.style.display = group4Button.style.display = group9Button.style.display = 'block';
         
         // Register click listeners
         // Group 2 button
@@ -277,6 +271,22 @@
                 '</p>';
                 
             group4.riload();    
+        };
+
+        // Group 9 button
+        group9Button.onclick = function() {
+          // Add images to the document with Javascript
+          // You can use innerHTML to add new images to a group and only those
+          // will be processed by Riloadr.
+          group9Container.innerHTML +=
+              '<p>' +
+                  '<img class="group9" data-src="jolla.jpg" alt="group9 - La Jolla">' +
+                  '</p>' +
+                  '<p>' +
+                  '<img class="group9" data-src="tahiti.jpg" alt="group9 - Tahiti">' +
+                  '</p>';
+
+          group9.riload();
         };
     }
 

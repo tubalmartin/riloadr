@@ -1,5 +1,5 @@
 /*!
- * Riloadr.js 1.5.0 (c) 2013 Tubal Martin - MIT license
+ * Riloadr.js 1.5.1 (c) 2014 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -45,7 +45,6 @@
       , CLASSNAME = 'className'
       , IMGFORMAT = 'imgFormat'
       , PROTOTYPE = 'prototype'
-      , UNDEFINED = 'undefined'
       , SCROLLTOP = SCROLL+'Top'
       , ONCOMPLETE = ON+COMPLETE
       , SCROLLLEFT = SCROLL+'Left'
@@ -429,11 +428,13 @@
                         if (current && !current[RILOADED]) {
                             // Push image if:
                             // - Watch mode is disabled/done
+                            // - Watch mode is enabled and new images have been added to the DOM or
                             // - Watch mode is enabled and it's the first breakpoint processed or
                             // - Watch mode 'wider' is enabled and current breakpoint is wider than previous one or
                             // - Watch mode '*' is enabled and current breakpoint differs from previous one
                             if (! watchViewportEnabled ||
                                 watchViewportEnabled && (
+                                    update === TRUE ||
                                     ! prevBreakpoint || (
                                     watchViewportUp && isBreakpointWider(breakpoint, prevBreakpoint) ||
                                     watchViewportBoth && ! areBreakpointsEqual(breakpoint, prevBreakpoint)
@@ -512,7 +513,7 @@
     // ------------------------
 
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.5.0';
+    Riloadr.version = '1.5.1';
 
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -635,8 +636,7 @@
      */
     function getViewportWidthInCssPixels() {
         var math = Math
-          , widths = [docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
-          , screenWidthFallback = math.ceil(screenWidth / devicePixelRatio)
+          , widths = [win.innerWidth, docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
           , l = widths[LENGTH]
           , i = 0
           , width;
@@ -653,12 +653,12 @@
             width = math.max[APPLY](math, widths);
 
             // Catch cases where the viewport is wider than the screen
-            if (!isNaN(screenWidthFallback)) {
-                width = math.min(screenWidthFallback, width);
+            if (!isNaN(screenWidth)) {
+                width = math.min(screenWidth, width);
             }
         }
 
-        return width || screenWidthFallback || 0;
+        return width || screenWidth || 0;
     }
 
 

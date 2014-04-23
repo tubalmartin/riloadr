@@ -1,7 +1,7 @@
 {
   "name": "Riloadr",
   "main": ["riloadr.js", "riloadr.jquery.js"],
-  "version": "1.5.0",
+  "version": "1.5.1",
   "homepage": "https://github.com/tubalmartin/riloadr",
   "authors": [
     "Túbal Martín <tubalmartin@gmail.com>"

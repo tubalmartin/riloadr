@@ -771,7 +771,7 @@ Demos are located [here](https://github.com/tubalmartin/riloadr/tree/master/demo
 Inspect the source code and watch each demo in action, it's the best way to learn how to use Riloadr.
 To run the demos, download the repo, extract the files (optionally upload them to an online server) and open any `demo/*.html` file in your browser.
 
-**Online demos you ask?** [Here you are](http://www.margenn.com/tubal/riloadr/demos/)
+**Online demos you ask?** [Here you are](http://tubalmartin.me/riloadr/demos/)
 
 
 <a name="testing"></a>
@@ -801,6 +801,11 @@ Riloadr's goal has always been to work cross-browser, both desktop and mobile, a
 <a name="changelog"></a>
 
 ## 6. Changelog
+
+### 1.5.1
+
+* Bugfix: See issues #19, #20 and #21.
+* Bugfix: See issue #16
 
 ### 1.5.0
 
