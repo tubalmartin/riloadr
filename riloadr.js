@@ -1,5 +1,5 @@
 /*!
- * Riloadr.js 1.5.1 (c) 2014 Tubal Martin - MIT license
+ * Riloadr.js 1.5.2 (c) 2014 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -207,7 +207,7 @@
           , prevBreakpoint
 
             // Fallback breakpoint
-          , fallbackBreakpoint = {}
+          , fallbackBreakpoint
 
             // Widest breakpoint from those supplied
           , widestBreakpoint
@@ -226,7 +226,7 @@
         function setVwidthAndBreakpoints() {
             viewportWidth = getViewportWidthInCssPixels();
             breakpoint = getBreakpoint(breakpoints, viewportWidth, ignoreLowBandwidth);
-            fallbackBreakpoint = breakpoint[FALLBACK] && getFallbackBreakpoint(breakpoints, breakpoint[FALLBACK]);
+            fallbackBreakpoint = FALLBACK in breakpoint && getFallbackBreakpoint(breakpoints, breakpoint[FALLBACK]);
             widestBreakpoint = widestBreakpoint || watchViewportEnabled && getWidestBreakpoint(breakpoints);
 
             // If watch mode is enabled & is set to 'wider', test whether the current
@@ -369,7 +369,7 @@
                         img[SRC] = _img[SRC];
                         imageOnloadCallback[CALL](img);
                     };
-                    _img[ONERROR] = img[ONABORT] = function() {
+                    _img[ONERROR] = _img[ONABORT] = function() {
                         imageOnerrorCallback[CALL](img);
                     };
                     _img[SRC] = src;
@@ -386,7 +386,7 @@
                 img[RETRIES]++;
                 src = getImageSrc(img, base, (img[FALLBACK] ? fallbackBreakpoint : breakpoint), TRUE);
                 loadImage(src);
-            } else if (FALLBACK in breakpoint && !img[FALLBACK]) {
+            } else if (FALLBACK in breakpoint && !img[FALLBACK] && fallbackBreakpoint) {
                 img[RETRIES] = 0;
                 img[FALLBACK] = TRUE;
                 src = getImageSrc(img, base, fallbackBreakpoint);
@@ -532,7 +532,7 @@
     // ------------------------
 
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.5.1';
+    Riloadr.version = '1.5.2';
 
     // PUBLIC METHODS (SHARED)
     // ------------------------
