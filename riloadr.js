@@ -656,11 +656,10 @@
     function getViewportWidthInCssPixels() {
         var math = Math
           , widths = [win.innerWidth, docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
-          , l = widths[LENGTH]
           , i = 0
           , width;
 
-        for (; i < l; i++) {
+        for (; i < widths[LENGTH]; i++) {
             // If not a number remove it
             if (isNaN(widths[i])) {
                 widths.splice(i, 1);
