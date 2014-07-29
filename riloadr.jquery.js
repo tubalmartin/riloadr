@@ -1,5 +1,5 @@
 /*!
- * Riloadr.js 1.5.2 (c) 2014 Tubal Martin - MIT license
+ * Riloadr.js 1.5.3 (c) 2014 Tubal Martin - MIT license
  */
 !function(definition) {
     if (typeof define === 'function' && define.amd) {
@@ -513,7 +513,7 @@
     // ------------------------
 
     // Versioning guidelines: http://semver.org/
-    Riloadr.version = '1.5.2';
+    Riloadr.version = '1.5.3';
 
     // PUBLIC METHODS (SHARED)
     // ------------------------
@@ -637,11 +637,10 @@
     function getViewportWidthInCssPixels() {
         var math = Math
           , widths = [win.innerWidth, docElm.clientWidth, docElm.offsetWidth, body.clientWidth]
-          , l = widths[LENGTH]
           , i = 0
           , width;
 
-        for (; i < l; i++) {
+        for (; i < widths[LENGTH]; i++) {
             // If not a number remove it
             if (isNaN(widths[i])) {
                 widths.splice(i, 1);
