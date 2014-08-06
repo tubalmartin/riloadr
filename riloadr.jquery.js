@@ -715,7 +715,7 @@
     function isInViewport(img, threshold) {
         var $img = $(img);
         return !isBelowTheFold($img, threshold) && !isAboveTheTop($img, threshold) &&
-            !isRightOfFold($img, threshold) && !isLeftOfBegin($img, threshold);
+            !isRightOfFold($img, threshold) && !isLeftOfBegin($img, threshold) && isVisible($img);
     }
 
 
@@ -736,6 +736,10 @@
 
     function isLeftOfBegin($img, threshold) {
         return $win[SCROLLLEFT]() >= $img[OFFSET]()[LEFT] + threshold + $img[WIDTH]();
+    }
+
+    function isVisible($img) {
+        return $img.is(':visible');
     }
 
 
